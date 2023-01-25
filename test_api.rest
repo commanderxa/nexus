@@ -1,0 +1,50 @@
+###     AUTH     ### 
+### LOGIN
+POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "1234",
+    "meta": {
+        "location": "Callifornia",
+        "device_name": "Laptop",
+        "device_type": "Computer",
+        "device_os": "Linux"
+    }
+}
+
+### REGISTER
+POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "1234",
+    "meta": {
+        "location": "Callifornia",
+        "device_name": "Laptop",
+        "device_type": "Computer",
+        "device_os": "Linux"
+    }
+}
+
+### LOGOUT
+POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/auth/logout HTTP/1.1
+Content-Type: application/json
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzZDc5ZjEzYS0zYTM0LTQyYjUtYjE0OS03NjUxZWU2M2JlM2IiLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjAwNzQ1N30.PlV0TJLPGzT8cwP0YFpdQAkW2QojhHOxd61HHk0UYwyqWQZiuOp15MU1-9EA57v2AY7vH7cZGwelGr6jwMPBiQ"
+}
+
+###
+GET {{$dotenv PROTOCOL}}//{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api
+
+###     USER     ###
+### GET ALL USERS
+GET {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/users HTTP/1.1
+Authorization: Bearer {{$dotenv TOKEN}}
+
+### GET USER BY UUID
+GET {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/users/3d79f13a-3a34-42b5-b149-7651ee63be3b HTTP/1.1
+Authorization: Bearer {{$dotenv TOKEN}}
