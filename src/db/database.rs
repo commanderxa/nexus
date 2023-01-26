@@ -18,6 +18,7 @@ pub async fn initialize(session: &Session) -> Result<()> {
     create_keys_table(session).await?;
     create_session_table(session).await?;
     create_message_table(session).await?;
+    create_calls_table(session).await?;
     Ok(())
 }
 
@@ -56,6 +57,14 @@ async fn create_session_table(session: &Session) -> Result<()> {
 async fn create_message_table(session: &Session) -> Result<()> {
     session
         .query(CREATE_MESSAGE_TABLE_QUERY, ())
+        .await
+        .map(|_| ())
+        .map_err(From::from)
+}
+
+async fn create_calls_table(session: &Session) -> Result<()> {
+    session
+        .query(CREATE_CALLS_TABLE_QUERY, ())
         .await
         .map(|_| ())
         .map_err(From::from)

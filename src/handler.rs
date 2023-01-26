@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use crate::{
     handlers::users::get_uuid_by_token,
-    ops::message::send_message,
+    ops::{audio_call::connect_audio, message::send_message},
     state::{connection::ConnectionState, peer::Peer},
 };
 
@@ -42,7 +42,7 @@ pub async fn handle_stream(
     }
     .unwrap();
 
-    // parsing the initial request
+    // parsing the initial request to get jwt
     let req_empty: Request<EmptyRequestBody> = serde_json::from_str(&buf).unwrap();
     let token = req_empty.token;
 
@@ -78,8 +78,8 @@ pub async fn handle_stream(
                     // matches the operation from command
                     match req_command {
                         Command::Message => send_message(msg, session.clone(), state.clone()).await.unwrap(),
-                        Command::AudioStream => todo!(),
-                        Command::VideoStream => todo!(),
+                        Command::AudioCall => connect_audio(msg, session.clone(), state.clone()).await.unwrap(),
+                        Command::VideoCall => todo!(),
                     }
                 },
                 // error receiving a message
@@ -138,14 +138,6 @@ async fn add_peer(
                 .get_mut(&user_uuid)
                 .unwrap()
                 .insert(peer.token.clone(), tx);
-        }
-    }
-
-    for p in state.peers.iter() {
-        println!("- {}", p.0);
-        for pt in p.1.iter() {
-            let splitted = pt.0.split(".").collect::<Vec<&str>>();
-            println!("\t* {}", splitted[2]);
         }
     }
 

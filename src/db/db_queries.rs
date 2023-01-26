@@ -57,6 +57,20 @@ pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
     read Boolean,
     edited Boolean,
     msg_type Tinyint,
+    secret Boolean,
+    created_at timestamp,
+    PRIMARY KEY(created_at, sender, uuid)
+  );
+"#;
+
+// CALLS
+pub static CREATE_CALLS_TABLE_QUERY: &str = r#"
+  CREATE TABLE IF NOT EXISTS litera.calls (
+    uuid UUID,
+    sender UUID,
+    receiver UUID,
+    call_type Tinyint,
+    secret Boolean,
     created_at timestamp,
     PRIMARY KEY(created_at, sender, uuid)
   );

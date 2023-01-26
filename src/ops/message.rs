@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{error::Error, fmt::Debug, sync::Arc};
 
 use chrono::Duration;
 use scylla::{
@@ -22,14 +22,14 @@ use crate::{errors::db::DbError, filters::auth::check_token, state::connection::
 ///
 /// Requires:
 /// - Session
-/// - Buffer
+/// - Message
 pub async fn send_message(
-    buf: String,
+    message: String,
     session: Arc<Mutex<Session>>,
     state: Arc<Mutex<ConnectionState>>,
-) -> tokio::io::Result<()> {
+) -> Result<(), Box<dyn Error>> {
     let phantom_message: Request<MessageRequest<EmptyMessageBody>> =
-        serde_json::from_str(&buf).unwrap();
+        serde_json::from_str(&message).unwrap();
 
     // verifying whether the token is valid
     let token_verify = check_token(session.clone(), phantom_message.token).await;
@@ -41,7 +41,7 @@ pub async fn send_message(
     let message = match phantom_message.body.message.get_msg_type() {
         MessageType::Text => {
             let text_message: Request<MessageRequest<TextMessage>> =
-                serde_json::from_str(&buf).unwrap();
+                serde_json::from_str(&message).unwrap();
             text_message
         }
         MessageType::Audio => todo!(),

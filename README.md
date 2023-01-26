@@ -14,4 +14,4 @@ A Backend of the messenger.
 
 ## License
 
-The current state of project licesing is not defined, hence all the uses of this project have to be sanctioned by the owner.
+The current state of project licensing is not defined, hence all the uses of this project have to be sanctioned by the owner.

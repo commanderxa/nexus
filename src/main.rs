@@ -66,38 +66,35 @@ async fn main() -> Result<()> {
                 Ok(_) => (),
                 Err(_) => {
                     log::error!("Error handling request");
-                    panic!("Error handling request.");
+                    panic!("Error handling request");
                 }
             }
         });
     }
 
-    // TCP Listener
+    Ok(())
+
+    // TCP TLS Listener
     // let config = get_tls_config()?;
     // let acceptor = TlsAcceptor::from(Arc::new(config));
-
     // loop {
-    // while let Ok((stream, _socket)) = listener.accept().await {
-    //     // let acceptor = acceptor.clone();
-    //     let session: Arc<Mutex<Session>> = session_copy.clone();
-    //     let fut = async move {
-    //         let mut tls_stream = acceptor.accept(stream).await?;
-    //         let (mut stream, _) = tls_stream.get_mut();
-    //         match handle_stream(&mut stream, session).await {
-    //             Ok(_) => (),
-    //             Err(_) => panic!("Error handling request."),
-    //         }
-
-    //         Ok(()) as io::Result<()>
-    //     };
-
-    //     tokio::spawn(async move {
-    //         if let Err(err) = fut.await {
-    //             error!("{:?}", err);
-    //         }
-    //     });
+    //     while let Ok((stream, _socket)) = listener.accept().await {
+    //         // let acceptor = acceptor.clone();
+    //         let session: Arc<Mutex<Session>> = session_copy.clone();
+    //         let fut = async move {
+    //             let mut tls_stream = acceptor.accept(stream).await?;
+    //             match handle_stream(tls_stream, session, state).await {
+    //                 Ok(_) => (),
+    //                 Err(_) => panic!("Error handling request."),
+    //             }
+    //             Ok(()) as Result<()>
+    //         };
+    //         tokio::spawn(async move {
+    //             if let Err(err) = fut.await {
+    //                 log::error!("{:?}", err);
+    //                 panic!("Error handling request.");
+    //             }
+    //         });
+    //     }
     // }
-    // }
-
-    Ok(())
 }
