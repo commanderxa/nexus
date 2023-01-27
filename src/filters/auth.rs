@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use orbis::{
     models::user::role::Role,
-    requests::auth::{AuthRequest, LogoutRequest},
+    request::auth::{AuthRequest, LogoutRequest},
 };
 use scylla::Session;
 use tokio::sync::Mutex;

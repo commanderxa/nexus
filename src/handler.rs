@@ -1,16 +1,16 @@
-use std::{collections::HashMap, error::Error, sync::Arc};
+use std::{collections::HashMap, error::Error, net::SocketAddr, sync::Arc};
 
 use futures::{SinkExt, StreamExt};
 use scylla::Session;
 use tokio::{
-    net::TcpStream,
-    sync::{mpsc::UnboundedSender, Mutex},
+    net::{TcpStream, UdpSocket},
+    sync::{mpsc, Mutex},
 };
 
 use orbis::{
     errors::stream::StreamError,
-    models::command::Command,
-    requests::{EmptyRequestBody, Request},
+    models::{calls::audio_call::AudioCall, command::Command},
+    request::{EmptyRequestBody, Request},
 };
 use tokio_util::codec::{Framed, LinesCodec};
 use uuid::Uuid;
@@ -18,7 +18,10 @@ use uuid::Uuid;
 use crate::{
     handlers::users::get_uuid_by_token,
     ops::{audio_call::connect_audio, message::send_message},
-    state::{connection::ConnectionState, peer::Peer},
+    state::{
+        connection::{ConnectionState, SessionSocket},
+        peer::Peer,
+    },
 };
 
 /// This function handles stream and peer.
@@ -28,6 +31,7 @@ use crate::{
 /// Also regulates the program flow based on the received message type.
 pub async fn handle_stream(
     stream: TcpStream,
+    socket_addr: SocketAddr,
     session: Arc<Mutex<Session>>,
     state: Arc<Mutex<ConnectionState>>,
 ) -> Result<(), StreamError> {
@@ -56,7 +60,7 @@ pub async fn handle_stream(
     let user_uuid = user_uuid.unwrap();
 
     // adding user to the active state
-    let mut peer = add_peer(state.clone(), lines, user_uuid, token.clone())
+    let mut peer = add_peer(state.clone(), lines, user_uuid, token.clone(), socket_addr)
         .await
         .unwrap();
 
@@ -111,11 +115,15 @@ async fn add_peer(
     lines: Framed<TcpStream, LinesCodec>,
     user_uuid: Uuid,
     token: String,
+    socket_addr: SocketAddr,
 ) -> Result<Peer, Box<dyn Error>> {
     let (mut peer, tx) = Peer::new(lines, user_uuid, token);
 
     // locking the state
     let mut state = state.lock().await;
+
+    // defining session socket which is then inserted into the connection state
+    let session_socket = SessionSocket::new(socket_addr, tx);
     // checking whether there is already exist an active session for this user
     match state.peers.get_mut(&user_uuid) {
         // if exists => adding a new session
@@ -124,11 +132,11 @@ async fn add_peer(
                 .peers
                 .get_mut(&user_uuid)
                 .unwrap()
-                .insert(peer.token.clone(), tx);
+                .insert(peer.token.clone(), session_socket);
         }
         // if doesn't exist => add a user entry, then add the session
         None => {
-            let hm_empty: HashMap<String, UnboundedSender<String>> = HashMap::new();
+            let hm_empty: HashMap<String, SessionSocket> = HashMap::new();
             // inserting new user to the peers
             state.peers.insert(user_uuid.clone(), hm_empty);
 
@@ -137,7 +145,7 @@ async fn add_peer(
                 .peers
                 .get_mut(&user_uuid)
                 .unwrap()
-                .insert(peer.token.clone(), tx);
+                .insert(peer.token.clone(), session_socket);
         }
     }
 
@@ -164,4 +172,47 @@ async fn remove_peer(state: Arc<Mutex<ConnectionState>>, user_uuid: Uuid, token:
         .get_mut(&user_uuid)
         .unwrap()
         .remove(&token);
+}
+
+/// Handles UDP stream for calls
+pub async fn handle_udp(
+    sock: UdpSocket,
+    state: Arc<Mutex<ConnectionState>>,
+) -> Result<(), Box<dyn Error>> {
+    let r = Arc::new(sock);
+    let s = r.clone();
+    let (tx, mut rx) = mpsc::channel::<(AudioCall, SocketAddr)>(1_000);
+
+    let mut buf = [0; 1024];
+    tokio::select! {
+        // received a call from a peer
+        Some((call, addr)) = rx.recv() => {
+            // transmit the call frame to the session receiver
+            let len = s.send_to(&call.message, addr).await.unwrap();
+            println!("{:?} bytes sent", len);
+        }
+        // received a call frame from a user
+        result = r.recv_from(&mut buf) => match result {
+            Ok((len, addr)) => {
+                println!("{:?} bytes received from {:?}", len, addr);
+
+                // deserializing call and extracting the receiver
+                let call = AudioCall::from_bytes(buf.to_vec());
+                let receiver = &call.sides.get_receiver().to_owned();
+                let hashed_jwt_recv = &call.hashed_jwt_recv.to_owned().unwrap();
+                let recv_addr = state.lock().await.peers
+                                    .get(&receiver).unwrap()
+                                    .get(hashed_jwt_recv).unwrap()
+                                    .socket_addr;
+
+                // sending the call frame to the receiver session peer
+                tx.send((call.clone(), recv_addr)).await.unwrap();
+            }
+            Err(e) => {
+                log::error!("Got error while receiving UDP Stream! {e}");
+            },
+        }
+    }
+
+    Ok(())
 }

@@ -1,12 +1,15 @@
 use std::{env, sync::Arc};
 
 use state::connection::ConnectionState;
-use tokio::{net::TcpListener, sync::Mutex};
+use tokio::{
+    net::{TcpListener, UdpSocket},
+    sync::Mutex,
+};
 
 use env_logger::Env;
 use scylla::Session;
 
-use crate::{result::Result, routes::get_routes};
+use crate::{handler::handle_udp, result::Result, routes::get_routes};
 
 use db::database;
 use handler::handle_stream;
@@ -36,6 +39,9 @@ async fn main() -> Result<()> {
     let session_copy: Arc<Mutex<Session>> = Arc::clone(&Arc::new(Mutex::new(session)));
     let session_web = session_copy.clone();
 
+    // Active connections state
+    let state: Arc<Mutex<ConnectionState>> = Arc::new(Mutex::new(ConnectionState::new()));
+
     // HTTP server
     let routes = get_routes(session_web);
     tokio::spawn(async move {
@@ -47,26 +53,46 @@ async fn main() -> Result<()> {
             .await;
     });
 
-    log::info!("TCP server listener set up");
+    // TCP Server
+    log::info!(
+        "TCP server listener set up at `{}`",
+        std::env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned())
+    );
     let listener =
         TcpListener::bind(env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned()))
             .await
             .expect("Error binding port");
 
-    // Active TCP state
-    let state: Arc<Mutex<ConnectionState>> = Arc::new(Mutex::new(ConnectionState::new()));
+    // UDP Server
+    log::info!(
+        "UDP server set up at `{}`",
+        std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned())
+    );
+    let sock =
+        UdpSocket::bind(std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned()))
+            .await
+            .unwrap();
+
+    let udp_state = Arc::clone(&state);
+    tokio::spawn(async move {
+        match handle_udp(sock, udp_state).await {
+            Ok(_) => (),
+            Err(_) => {
+                log::error!("Error handling request");
+            }
+        }
+    });
 
     // TCP Listener
-    while let Ok((stream, _socket)) = listener.accept().await {
+    while let Ok((stream, socket)) = listener.accept().await {
         let session: Arc<Mutex<Session>> = session_copy.clone();
         let state = Arc::clone(&state);
 
         tokio::spawn(async move {
-            match handle_stream(stream, session, state).await {
+            match handle_stream(stream, socket, session, state).await {
                 Ok(_) => (),
                 Err(_) => {
                     log::error!("Error handling request");
-                    panic!("Error handling request");
                 }
             }
         });

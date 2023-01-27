@@ -59,6 +59,7 @@ pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
     msg_type Tinyint,
     secret Boolean,
     created_at timestamp,
+    edited_at timestamp,
     PRIMARY KEY(created_at, sender, uuid)
   );
 "#;
@@ -70,6 +71,8 @@ pub static CREATE_CALLS_TABLE_QUERY: &str = r#"
     sender UUID,
     receiver UUID,
     call_type Tinyint,
+    duration Int,
+    accepted Boolean,
     secret Boolean,
     created_at timestamp,
     PRIMARY KEY(created_at, sender, uuid)

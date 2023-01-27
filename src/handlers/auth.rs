@@ -3,7 +3,7 @@ use std::{convert::Infallible, sync::Arc};
 use chrono::{Duration, Utc};
 use orbis::{
     models::user::user::User,
-    requests::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
+    request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
 };
 use scylla::{frame::value::Timestamp, prepared_statement::PreparedStatement, Session};
 use tokio::sync::Mutex;

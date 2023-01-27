@@ -7,12 +7,8 @@ use scylla::{
 use tokio::sync::Mutex;
 
 use orbis::{
-    models::message::{
-        message::{EmptyMessageBody, MessageContent},
-        msg_type::MessageType,
-        text::TextMessage,
-    },
-    requests::{message::MessageRequest, Request},
+    models::message::{msg_type::MessageType, text::TextMessage, EmptyMessageBody, MessageContent},
+    request::{message::MessageRequest, Request},
     Message,
 };
 
@@ -76,7 +72,7 @@ pub async fn send_message(
     {
         println!("Message is sent to the receiver: {}", peer.0);
         // sending the message to the receiver
-        let _ = peer.1.send(msg.to_owned());
+        let _ = peer.1.tcp_sender.send(msg.to_owned());
     }
 
     Ok(())
@@ -90,8 +86,11 @@ pub async fn add_message<T: MessageContent + Debug>(
     let prepared: PreparedStatement = session
         .lock()
         .await
-        .prepare(
-            "INSERT INTO litera.messages (uuid, text, nonce, filename, filepath, sender, receiver, sent, read, edited, msg_type, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        .prepare("
+            INSERT INTO litera.messages 
+            (uuid, text, nonce, filename, filepath, sender, receiver, sent, read, edited, msg_type, created_at) 
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ",
         )
         .await
         .unwrap();
