@@ -5,7 +5,7 @@ Content-Type: application/json
 
 {
     "username": "test",
-    "password": "1234",
+    "password": "123",
     "meta": {
         "location": "Callifornia",
         "device_name": "Laptop",
@@ -20,7 +20,7 @@ Content-Type: application/json
 
 {
     "username": "test",
-    "password": "1234",
+    "password": "123",
     "meta": {
         "location": "Callifornia",
         "device_name": "Laptop",
@@ -34,7 +34,7 @@ POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/auth/logou
 Content-Type: application/json
 
 {
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzZDc5ZjEzYS0zYTM0LTQyYjUtYjE0OS03NjUxZWU2M2JlM2IiLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjAwNzQ1N30.PlV0TJLPGzT8cwP0YFpdQAkW2QojhHOxd61HHk0UYwyqWQZiuOp15MU1-9EA57v2AY7vH7cZGwelGr6jwMPBiQ"
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIzMzRiNmYzZC00OThhLTRhNmUtODhhYi1mMGZiNmNlMzI2OTAiLCJyb2xlIjoidXNlciIsImV4cCI6MTcwNjQyNTI3OH0.1vSBiWB8WeWtE3EL2f2YyamVdeHPUe8LDQ76dvbqaH-TAqkZlvXX0rILPE1hOkotT5FTAT_og6vxuf3akIxo2w"
 }
 
 ###
@@ -47,4 +47,8 @@ Authorization: Bearer {{$dotenv TOKEN}}
 
 ### GET USER BY UUID
 GET {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/users/3d79f13a-3a34-42b5-b149-7651ee63be3b HTTP/1.1
+Authorization: Bearer {{$dotenv TOKEN}}
+
+### POST (GET) USER KEY 
+POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/users/key/334b6f3d-498a-4a6e-88ab-f0fb6ce32690 HTTP/1.1
 Authorization: Bearer {{$dotenv TOKEN}}

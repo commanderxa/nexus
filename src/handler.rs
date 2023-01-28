@@ -10,7 +10,7 @@ use tokio::{
 use orbis::{
     errors::stream::StreamError,
     models::{calls::audio_call::AudioCall, command::Command},
-    request::{EmptyRequestBody, Request},
+    request::{EmptyRequestBody, Request}, response::{Response, ResponseStatus, ResponseStatusCode},
 };
 use tokio_util::codec::{Framed, LinesCodec};
 use uuid::Uuid;
@@ -59,8 +59,11 @@ pub async fn handle_stream(
     }
     let user_uuid = user_uuid.unwrap();
 
+    // creating new UUID for new peer
+    let peer_uuid = Uuid::new_v4();
+
     // adding user to the active state
-    let mut peer = add_peer(state.clone(), lines, user_uuid, token.clone(), socket_addr)
+    let mut peer = add_peer(state.clone(), lines, user_uuid, peer_uuid, socket_addr)
         .await
         .unwrap();
 
@@ -98,7 +101,7 @@ pub async fn handle_stream(
 
     {
         // removes user from acrive state when the stream is canceled
-        remove_peer(state.clone(), user_uuid, token).await;
+        remove_peer(state.clone(), user_uuid, peer_uuid).await;
     }
 
     Ok(())
@@ -114,10 +117,10 @@ async fn add_peer(
     state: Arc<Mutex<ConnectionState>>,
     lines: Framed<TcpStream, LinesCodec>,
     user_uuid: Uuid,
-    token: String,
+    peer_uuid: Uuid,
     socket_addr: SocketAddr,
 ) -> Result<Peer, Box<dyn Error>> {
-    let (mut peer, tx) = Peer::new(lines, user_uuid, token);
+    let (mut peer, tx) = Peer::new(lines, user_uuid, peer_uuid);
 
     // locking the state
     let mut state = state.lock().await;
@@ -132,11 +135,11 @@ async fn add_peer(
                 .peers
                 .get_mut(&user_uuid)
                 .unwrap()
-                .insert(peer.token.clone(), session_socket);
+                .insert(peer_uuid, session_socket);
         }
         // if doesn't exist => add a user entry, then add the session
         None => {
-            let hm_empty: HashMap<String, SessionSocket> = HashMap::new();
+            let hm_empty: HashMap<Uuid, SessionSocket> = HashMap::new();
             // inserting new user to the peers
             state.peers.insert(user_uuid.clone(), hm_empty);
 
@@ -145,13 +148,14 @@ async fn add_peer(
                 .peers
                 .get_mut(&user_uuid)
                 .unwrap()
-                .insert(peer.token.clone(), session_socket);
+                .insert(peer_uuid, session_socket);
         }
     }
 
     // OK answer to the client
+    let response = serde_json::to_string(&Response::new(ResponseStatus::Ok, ResponseStatusCode::ConnectionEstablished)).unwrap();
     peer.lines
-        .send("Connection is established!".to_owned())
+        .send(response)
         .await?;
 
     Ok(peer)
@@ -163,7 +167,7 @@ async fn add_peer(
 /// - ConnectionsState
 /// - User UUID
 /// - Token
-async fn remove_peer(state: Arc<Mutex<ConnectionState>>, user_uuid: Uuid, token: String) {
+async fn remove_peer(state: Arc<Mutex<ConnectionState>>, user_uuid: Uuid, session_id: Uuid) {
     state
         .clone()
         .lock()
@@ -171,7 +175,7 @@ async fn remove_peer(state: Arc<Mutex<ConnectionState>>, user_uuid: Uuid, token:
         .peers
         .get_mut(&user_uuid)
         .unwrap()
-        .remove(&token);
+        .remove(&session_id);
 }
 
 /// Handles UDP stream for calls
@@ -199,10 +203,10 @@ pub async fn handle_udp(
                 // deserializing call and extracting the receiver
                 let call = AudioCall::from_bytes(buf.to_vec());
                 let receiver = &call.sides.get_receiver().to_owned();
-                let hashed_jwt_recv = &call.hashed_jwt_recv.to_owned().unwrap();
+                let receiver_peer = &call.receiver_peer.to_owned().unwrap();
                 let recv_addr = state.lock().await.peers
                                     .get(&receiver).unwrap()
-                                    .get(hashed_jwt_recv).unwrap()
+                                    .get(receiver_peer).unwrap()
                                     .socket_addr;
 
                 // sending the call frame to the receiver session peer

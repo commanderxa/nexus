@@ -9,14 +9,14 @@ pub struct Peer {
     pub lines: Framed<TcpStream, LinesCodec>,
     pub rx: UnboundedReceiver<String>,
     pub user_uuid: Uuid,
-    pub token: String,
+    pub peer_uuid: Uuid,
 }
 
 impl Peer {
     pub fn new(
         lines: Framed<TcpStream, LinesCodec>,
         user_uuid: Uuid,
-        token: String,
+        peer_uuid: Uuid,
     ) -> (Self, UnboundedSender<String>) {
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -24,7 +24,7 @@ impl Peer {
             Self {
                 lines,
                 user_uuid,
-                token,
+                peer_uuid,
                 rx,
             },
             tx,

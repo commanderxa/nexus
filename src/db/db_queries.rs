@@ -22,9 +22,9 @@ pub static CREATE_USER_TABLE_QUERY: &str = r#"
 
 // CHAT KEYS
 pub static CREATE_CHAT_KEYS_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.chat_keys (
+  CREATE TABLE IF NOT EXISTS litera.secret_keys (
     user UUID,
-    private_key text,
+    private_key blob,
     PRIMARY KEY(user)
   );
 "#;

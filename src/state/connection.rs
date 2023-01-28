@@ -4,7 +4,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use uuid::Uuid;
 
 pub struct ConnectionState {
-    pub peers: HashMap<Uuid, HashMap<String, SessionSocket>>,
+    pub peers: HashMap<Uuid, HashMap<Uuid, SessionSocket>>,
 }
 
 impl ConnectionState {

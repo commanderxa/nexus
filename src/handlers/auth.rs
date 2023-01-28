@@ -4,9 +4,11 @@ use chrono::{Duration, Utc};
 use orbis::{
     models::user::user::User,
     request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
+    response::auth::AuthResponse,
 };
 use scylla::{frame::value::Timestamp, prepared_statement::PreparedStatement, Session};
 use tokio::sync::Mutex;
+use uuid::Uuid;
 use warp::{hyper::StatusCode, reject, Reply};
 
 use crate::{
@@ -25,7 +27,10 @@ pub async fn login(
     let result = validate_user(session, body).await;
 
     match result {
-        Ok(token) => Ok(warp::reply::json(&token).into_response()),
+        Ok((uuid, token)) => {
+            let auth_response = AuthResponse::new(uuid, token);
+            Ok(warp::reply::json(&auth_response).into_response())
+        }
         Err(e) => Ok(warp::reply::with_status(
             warp::reply::json(&e),
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -38,8 +43,8 @@ pub async fn register(
     session: Arc<Mutex<Session>>,
     body: AuthRequest,
 ) -> Result<warp::reply::Response, Infallible> {
-    let user = User::new(&body.username, &body.password, None);
-    let created = create(user, session.clone()).await.unwrap();
+    let (user, secret) = User::new(&body.username, &body.password, None);
+    let created = create((user, secret), session.clone()).await.unwrap();
 
     if !created.is_success() {
         return Ok(created.into_response());
@@ -48,7 +53,10 @@ pub async fn register(
     let result = validate_user(session, body).await;
 
     match result {
-        Ok(token) => Ok(warp::reply::json(&token).into_response()),
+        Ok((uuid, token)) => {
+            let auth_response = AuthResponse::new(uuid, token);
+            Ok(warp::reply::json(&auth_response).into_response())
+        }
         Err(e) => Ok(warp::reply::with_status(
             warp::reply::json(&e),
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -77,10 +85,12 @@ pub async fn logout(
     }
 }
 
+/// Check if user exists and returns
+/// the UUID of the user and the session jwt
 pub async fn validate_user(
     session: Arc<Mutex<Session>>,
     body: AuthRequest,
-) -> Result<String, DbError> {
+) -> Result<(Uuid, String), DbError> {
     let user_row = session
         .lock()
         .await
@@ -107,7 +117,10 @@ pub async fn validate_user(
         return Err(DbError::WrongCredentials);
     }
 
-    add_jwt_session(session, &user, body.meta).await
+    match add_jwt_session(session, &user, body.meta).await {
+        Ok(token) => Ok((user.uuid, token)),
+        Err(e) => Err(e),
+    }
 }
 
 pub async fn add_jwt_session(

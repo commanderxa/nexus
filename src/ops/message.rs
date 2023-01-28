@@ -70,7 +70,6 @@ pub async fn send_message(
         .unwrap()
         .iter_mut()
     {
-        println!("Message is sent to the receiver: {}", peer.0);
         // sending the message to the receiver
         let _ = peer.1.tcp_sender.send(msg.to_owned());
     }

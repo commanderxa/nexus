@@ -16,7 +16,8 @@ pub fn users(
         .or(users_get_by_uuid(session.clone()))
         .or(users_by_username(session.clone()))
         .or(users_update(session.clone()))
-        .or(users_delete(session))
+        .or(users_delete(session.clone()))
+        .or(users_get_key(session))
 }
 
 /// GET /users
@@ -88,6 +89,17 @@ pub fn users_delete(
         .and(with_auth(session.clone(), Role::User))
         .and(with_session(session))
         .and_then(handlers::users::delete)
+}
+
+pub fn users_get_key(
+    session: Arc<Mutex<Session>>,
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    warp::path("users")
+        .and(warp::path!("key" / String))
+        .and(warp::post())
+        .and(with_auth(session.clone(), Role::User))
+        .and(with_session(session))
+        .and_then(handlers::users::get_key)
 }
 
 pub fn json_body() -> impl Filter<Extract = (User,), Error = warp::Rejection> + Clone {

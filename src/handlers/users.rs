@@ -2,11 +2,12 @@ use std::{convert::Infallible, sync::Arc};
 
 use chrono::Duration;
 use scylla::{
-    frame::value::Timestamp, prepared_statement::PreparedStatement, IntoTypedRows, Session,
+    batch::Batch, frame::value::Timestamp, prepared_statement::PreparedStatement, IntoTypedRows,
+    Session,
 };
 use tokio::sync::Mutex;
 use uuid::{self, Uuid};
-use warp::hyper::StatusCode;
+use warp::{hyper::StatusCode, Reply};
 
 use orbis::models::user::user::User;
 
@@ -78,7 +79,13 @@ pub async fn get_by_username(
     Ok(warp::reply::json(&user))
 }
 
-pub async fn create(user: User, session: Arc<Mutex<Session>>) -> Result<StatusCode, Infallible> {
+pub async fn create(
+    user: (User, [u8; 32]),
+    session: Arc<Mutex<Session>>,
+) -> Result<StatusCode, Infallible> {
+    let secret = user.1;
+    let user = user.0;
+
     log::debug!("create_user: {:?}", user);
 
     if check_user_by_uuid(session.clone(), &user.uuid)
@@ -95,29 +102,41 @@ pub async fn create(user: User, session: Arc<Mutex<Session>>) -> Result<StatusCo
         return Ok(StatusCode::BAD_REQUEST);
     }
 
-    let prepared: PreparedStatement = session.lock().await
+    // create batch
+    let mut batch: Batch = Default::default();
+
+    // prepare statements
+    let prepared_user: PreparedStatement = session.lock().await
         .prepare(
             "INSERT INTO litera.users (uuid, username, password, role, public_key, created_at) VALUES(?, ?, ?, ?, ?, ?);",
         )
         .await
         .unwrap();
 
-    match session
+    let prepared_secret: PreparedStatement = session
         .lock()
         .await
-        .execute(
-            &prepared,
-            (
-                user.uuid,
-                &user.username.to_owned(),
-                &user.password.to_owned(),
-                (&user.role.to_owned().get_index()).to_owned() as i8,
-                &user.public_key_str().to_owned(),
-                Timestamp(Duration::seconds(user.created_at)),
-            ),
-        )
+        .prepare("INSERT INTO litera.secret_keys (user, private_key) VALUES(?, ?);")
         .await
-    {
+        .unwrap();
+
+    // append all statements to the batch
+    batch.append_statement(prepared_user);
+    batch.append_statement(prepared_secret);
+
+    // define values to insert
+    let user_values = (
+        user.uuid,
+        &user.username.to_owned(),
+        &user.password.to_owned(),
+        (&user.role.to_owned().get_index()).to_owned() as i8,
+        &user.public_key_str().to_owned(),
+        Timestamp(Duration::seconds(user.created_at)),
+    );
+    let secret_values = (user.uuid, secret.to_vec());
+    let batch_values = (user_values, secret_values);
+
+    match session.lock().await.batch(&batch, batch_values).await {
         Ok(_) => Ok(StatusCode::CREATED),
         Err(_e) => Ok(StatusCode::INTERNAL_SERVER_ERROR),
     }
@@ -258,5 +277,37 @@ pub async fn get_uuid_by_token(session: Arc<Mutex<Session>>, token: &str) -> Res
             Ok(user_session.1)
         }
         Err(_) => Err(DbError::NotFound),
+    }
+}
+
+pub async fn get_key(
+    id: String,
+    _uid: (),
+    session: Arc<Mutex<Session>>,
+) -> Result<warp::reply::Response, Infallible> {
+    // parsing UUID
+    let user_uuid = Uuid::parse_str(&id).unwrap();
+
+    // preparing the query
+    let prepared = session
+        .lock()
+        .await
+        .prepare("SELECT * FROM litera.secret_keys WHERE user = ? ALLOW FILTERING;")
+        .await
+        .unwrap();
+
+    // executing the query
+    match session.lock().await.execute(&prepared, (user_uuid,)).await {
+        // if Ok => return the key
+        Ok(row) => {
+            let key = row
+                .first_row()
+                .unwrap()
+                .into_typed::<(Uuid, Vec<u8>)>()
+                .unwrap();
+            Ok(warp::reply::json(&key.1).into_response())
+        }
+        // if Err => return error
+        Err(_) => Ok(StatusCode::INTERNAL_SERVER_ERROR.into_response()),
     }
 }
