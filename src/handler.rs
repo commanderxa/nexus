@@ -10,7 +10,8 @@ use tokio::{
 use orbis::{
     errors::stream::StreamError,
     models::{calls::audio_call::AudioCall, command::Command},
-    request::{EmptyRequestBody, Request}, response::{Response, ResponseStatus, ResponseStatusCode},
+    request::{EmptyRequestBody, Request},
+    response::{Response, ResponseStatus, ResponseStatusCode},
 };
 use tokio_util::codec::{Framed, LinesCodec};
 use uuid::Uuid;
@@ -85,7 +86,7 @@ pub async fn handle_stream(
                     // matches the operation from command
                     match req_command {
                         Command::Message => send_message(msg, session.clone(), state.clone()).await.unwrap(),
-                        Command::AudioCall => connect_audio(msg, session.clone(), state.clone()).await.unwrap(),
+                        Command::AudioCall => connect_audio(msg, session.clone(), state.clone(), peer_uuid).await.unwrap(),
                         Command::VideoCall => todo!(),
                     }
                 },
@@ -153,10 +154,12 @@ async fn add_peer(
     }
 
     // OK answer to the client
-    let response = serde_json::to_string(&Response::new(ResponseStatus::Ok, ResponseStatusCode::ConnectionEstablished)).unwrap();
-    peer.lines
-        .send(response)
-        .await?;
+    let response = serde_json::to_string(&Response::new(
+        ResponseStatus::Ok,
+        ResponseStatusCode::ConnectionEstablished,
+    ))
+    .unwrap();
+    peer.lines.send(response).await?;
 
     Ok(peer)
 }
@@ -203,7 +206,7 @@ pub async fn handle_udp(
                 // deserializing call and extracting the receiver
                 let call = AudioCall::from_bytes(buf.to_vec());
                 let receiver = &call.sides.get_receiver().to_owned();
-                let receiver_peer = &call.receiver_peer.to_owned().unwrap();
+                let receiver_peer = &call.peers.get_receiver().to_owned().unwrap();
                 let recv_addr = state.lock().await.peers
                                     .get(&receiver).unwrap()
                                     .get(receiver_peer).unwrap()

@@ -9,6 +9,7 @@ use scylla::{
     frame::value::Timestamp, prepared_statement::PreparedStatement, QueryResult, Session,
 };
 use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use crate::{errors::db::DbError, filters::auth::check_token, state::connection::ConnectionState};
 
@@ -16,6 +17,7 @@ pub async fn connect_audio(
     call: String,
     session: Arc<Mutex<scylla::Session>>,
     state: Arc<Mutex<ConnectionState>>,
+    peer_uuid: Uuid,
 ) -> Result<(), Box<dyn Error>> {
     let call_request: Request<CallRequest<AudioCall>> = serde_json::from_str(&call).unwrap();
 
@@ -26,7 +28,7 @@ pub async fn connect_audio(
     }
 
     // extract the call
-    let call = call_request.body.call;
+    let mut call = call_request.body.call;
     // check if the call is secret
     if !call.secret {
         // if it is not a secret and
@@ -38,14 +40,19 @@ pub async fn connect_audio(
             }
         } else {
             // if this is a cancel call request
-            // => update the call entry in the DB 
+            // => update the call entry in the DB
             if update_call(session, &call).await.is_err() {
                 log::error!("Error updating call to the DB!");
             }
         }
     }
 
-    // let call_str = &serde_json::to_string(&call).unwrap();
+    if call_request.body.index == IndexToken::Start {
+        call.peers.set_sender(peer_uuid);
+    } else if call_request.body.index == IndexToken::Accept {
+        call.peers.set_receiver(peer_uuid);
+    }
+    let call_str = serde_json::to_string(&call).unwrap();
 
     // iterating over all peers, searching for a receiver
     for peer in state
@@ -58,8 +65,7 @@ pub async fn connect_audio(
     {
         println!("Call is sent to the receiver: {}", peer.0);
         // sending the call to the receiver
-        todo!();
-        // let _ = peer.1.tcp_sender.send(call_str.as_bytes().to_vec());
+        let _ = peer.1.tcp_sender.send(call_str.clone());
     }
 
     Ok(())

@@ -1,4 +1,7 @@
-use std::{env, sync::Arc};
+use std::{
+    env,
+    sync::{mpsc::channel, Arc}, process,
+};
 
 use state::connection::ConnectionState;
 use tokio::{
@@ -30,6 +33,18 @@ mod tls;
 async fn main() -> Result<()> {
     // Logger
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    // Set up ctrl^c handler
+    let (tx, rx) = channel();
+    ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))
+        .expect("Error setting Ctrl-C handler");
+
+    // If received ctrl^c => exit the program 
+    tokio::spawn(async move {
+        rx.recv().expect("Could not receive from channel.");
+        log::info!("Exiting...");
+        process::exit(0);
+    });
 
     // DB
     let uri = std::env::var("SCYLLA_URI").unwrap_or_else(|_| "127.0.0.1:9042".to_string());
