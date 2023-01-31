@@ -71,10 +71,10 @@ pub static CREATE_CALLS_TABLE_QUERY: &str = r#"
     sender UUID,
     receiver UUID,
     call_type Tinyint,
-    duration Int,
+    duration BigInt,
     accepted Boolean,
     secret Boolean,
     created_at timestamp,
-    PRIMARY KEY(created_at, sender, uuid)
-  );
+    PRIMARY KEY(uuid, created_at))
+    WITH CLUSTERING ORDER BY (created_at DESC);
 "#;

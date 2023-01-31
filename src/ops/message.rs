@@ -28,7 +28,7 @@ pub async fn send_message(
         serde_json::from_str(&message).unwrap();
 
     // verifying whether the token is valid
-    let token_verify = check_token(session.clone(), phantom_message.token).await;
+    let token_verify = check_token(session.clone(), &phantom_message.token).await;
     if token_verify.is_err() {
         return Ok(());
     }

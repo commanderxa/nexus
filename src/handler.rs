@@ -1,6 +1,7 @@
-use std::{collections::HashMap, error::Error, net::SocketAddr, sync::Arc};
+use std::{error::Error, net::SocketAddr, sync::Arc};
 
 use futures::{SinkExt, StreamExt};
+use hashbrown::HashMap;
 use scylla::Session;
 use tokio::{
     net::{TcpStream, UdpSocket},
@@ -208,7 +209,7 @@ pub async fn handle_udp(
                 let receiver = &call.sides.get_receiver().to_owned();
                 let receiver_peer = &call.peers.get_receiver().to_owned().unwrap();
                 let recv_addr = state.lock().await.peers
-                                    .get(&receiver).unwrap()
+                                    .get(receiver).unwrap()
                                     .get(receiver_peer).unwrap()
                                     .socket_addr;
 

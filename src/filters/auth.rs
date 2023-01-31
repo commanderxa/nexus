@@ -76,7 +76,7 @@ pub async fn authorize(
 ) -> Result<(), Rejection> {
     match jwt_from_header(&headers) {
         Ok(token) => {
-            let decoded = check_token(session, token)
+            let decoded = check_token(session, &token)
                 .await
                 .map_err(|_| reject::custom(JWTError::JWTTokenError))?;
 
@@ -95,10 +95,10 @@ pub async fn authorize(
 
 pub async fn check_token(
     session: Arc<Mutex<Session>>,
-    token: String,
+    token: &str,
 ) -> Result<TokenData<Claims>, JWTError> {
     let decoded = decode::<Claims>(
-        &token,
+        token,
         &DecodingKey::from_secret(b"123"),
         &Validation::new(Algorithm::HS512),
     )

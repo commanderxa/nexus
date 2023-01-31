@@ -69,7 +69,7 @@ pub async fn logout(
     session: Arc<Mutex<Session>>,
     body: LogoutRequest,
 ) -> Result<warp::reply::Response, Infallible> {
-    let _token_decoded = check_token(session.clone(), body.token.clone())
+    let _token_decoded = check_token(session.clone(), &body.token)
         .await
         .map_err(|_| reject::custom(JWTError::JWTTokenError))
         .unwrap();
