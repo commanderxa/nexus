@@ -3,7 +3,7 @@ use std::io::{Result, Write};
 use aes_gcm::{aead::Aead, Aes256Gcm, KeyInit, Nonce};
 use ansi_term::Color;
 use futures::StreamExt;
-use cursorlib::{
+use nexuslib::{
     models::{message::text::TextMessage, user::user::User},
     request::{message::MessageRequest, Request, RequestBody},
     utils::{string_to_vec, vec_to_string},

@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use cursorlib::models::user::user::User;
+use nexuslib::models::user::user::User;
 use reqwest::Client;
 use uuid::Uuid;
 

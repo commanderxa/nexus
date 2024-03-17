@@ -1,7 +1,7 @@
 use std::{error::Error, sync::Arc};
 
 use chrono::Duration;
-use cursorlib::{
+use nexuslib::{
     models::calls::audio_call::AudioCall,
     request::{call::CallRequest, IndexToken, Request},
 };

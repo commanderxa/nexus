@@ -1,7 +1,7 @@
 use std::{convert::Infallible, sync::Arc};
 
 use chrono::{Duration, Utc};
-use cursorlib::{
+use nexuslib::{
     models::user::user::User,
     request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
     response::auth::AuthResponse,

@@ -1,5 +1,5 @@
 [package]
-name = "cursor"
+name = "nexus"
 version = "0.1.0"
 edition = "2021"
 authors = ["commanderxa"]
@@ -7,7 +7,7 @@ readme = "README.md"
 
 [dependencies]
 # core library
-cursorlib = { path = "../cursorlib" }
+nexuslib = { path = "../nexuslib" }
 
 # async
 tokio = { version = "1.23.0", features = ["full"] }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cursorlib::models::user::{role::Role, user::User};
+use nexuslib::models::user::{role::Role, user::User};
 use scylla::Session;
 use tokio::sync::Mutex;
 use warp::Filter;

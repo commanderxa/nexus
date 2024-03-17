@@ -1,6 +1,6 @@
 use chrono::Utc;
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use cursorlib::models::user::role::Role;
+use nexuslib::models::user::role::Role;
 use serde::{Deserialize, Serialize};
 use warp::{
     http::HeaderValue,

@@ -1,6 +1,6 @@
-# Cursor
+# NEXUS
 
-Code name Cursor.
+Code name NEXUS.
 
 A Backend of the messenger.
 

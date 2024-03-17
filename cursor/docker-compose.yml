@@ -5,7 +5,7 @@ services:
   # ScyllaDB
   some-scylla:
     image: scylladb/scylla
-    container_name: cursor
+    container_name: nexus
     ports:
       - 9042:9042
 

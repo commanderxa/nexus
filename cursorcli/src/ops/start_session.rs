@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use cursorlib::request::{EmptyRequestBody, Request};
+use nexuslib::request::{EmptyRequestBody, Request};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
     net::TcpStream,

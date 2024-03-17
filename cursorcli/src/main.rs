@@ -12,7 +12,7 @@ use tokio::{
     sync::mpsc,
 };
 
-use cursorlib::{
+use nexuslib::{
     models::{calls::audio_call::AudioCall, command::Command, user::user::User},
     request::{
         auth::{AuthRequest, AuthRequestMeta},

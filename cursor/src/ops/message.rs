@@ -6,7 +6,7 @@ use scylla::{
 };
 use tokio::sync::Mutex;
 
-use cursorlib::{
+use nexuslib::{
     models::message::{msg_type::MessageType, text::TextMessage, EmptyMessageBody, MessageContent},
     request::{message::MessageRequest, Request},
     Message,

@@ -1,3 +1,3 @@
-# cursorlib
+# nexuslib
 
 Core library

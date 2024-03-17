@@ -1,5 +1,5 @@
 [package]
-name = "cursorlib"
+name = "nexuslib"
 version = "0.1.0"
 edition = "2021"
 authors = ["commanderxa"]
@@ -17,7 +17,7 @@ rand_core = "0.5.1"
 hex = "0.4.3"
 sha3 = "0.10.6"
 aes-gcm = "0.10.1"
-x25519-dalek = { version = "1.2.0", features = ["reusable_secrets"]}
+x25519-dalek = { version = "1.2.0", features = ["reusable_secrets"] }
 
 # serde
 serde = { version = "1.0.151", features = ["derive"] }
