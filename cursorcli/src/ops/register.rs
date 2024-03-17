@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use orbis::models::user::user::User;
+use cursorlib::models::user::user::User;
 
 /// Register a new user
 ///

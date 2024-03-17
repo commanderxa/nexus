@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use uuid::{self, Uuid};
 use warp::{hyper::StatusCode, Reply};
 
-use orbis::models::user::user::User;
+use cursorlib::models::user::user::User;
 
 use crate::{db::models_wrapper::UserDB, errors::db::DbError};
 

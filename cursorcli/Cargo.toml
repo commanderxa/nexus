@@ -1,11 +1,11 @@
 [package]
-name = "litera"
+name = "cursorcli"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 # core
-orbis = { path = "../orbis" }
+cursorlib = { path = "../cursorlib" }
 
 # async
 tokio = { version = "1.23.0", features = ["full"] }

@@ -1,7 +1,7 @@
 use std::{str::FromStr, sync::Arc};
 
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
-use orbis::{
+use cursorlib::{
     models::user::role::Role,
     request::auth::{AuthRequest, LogoutRequest},
 };

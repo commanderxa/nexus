@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use orbis::request::{EmptyRequestBody, Request};
+use cursorlib::request::{EmptyRequestBody, Request};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
     net::TcpStream,

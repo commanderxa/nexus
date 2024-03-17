@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use orbis::models::user::role::Role;
+use cursorlib::models::user::role::Role;
 use scylla::Session;
 use tokio::sync::Mutex;
 use warp::{header::headers_cloned, http::HeaderValue, hyper::HeaderMap, Filter, Rejection};

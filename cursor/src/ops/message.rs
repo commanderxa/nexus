@@ -6,7 +6,7 @@ use scylla::{
 };
 use tokio::sync::Mutex;
 
-use orbis::{
+use cursorlib::{
     models::message::{msg_type::MessageType, text::TextMessage, EmptyMessageBody, MessageContent},
     request::{message::MessageRequest, Request},
     Message,

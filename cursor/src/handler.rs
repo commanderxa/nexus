@@ -8,7 +8,7 @@ use tokio::{
     sync::{mpsc, Mutex},
 };
 
-use orbis::{
+use cursorlib::{
     errors::stream::StreamError,
     models::{calls::audio_call::AudioCall, command::Command},
     request::{EmptyRequestBody, Request},

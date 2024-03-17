@@ -12,7 +12,7 @@ use tokio::{
     sync::mpsc,
 };
 
-use orbis::{
+use cursorlib::{
     models::{calls::audio_call::AudioCall, command::Command, user::user::User},
     request::{
         auth::{AuthRequest, AuthRequestMeta},

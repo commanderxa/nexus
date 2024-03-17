@@ -1,3 +1,3 @@
-# ORBIS
+# cursorlib
 
 Core library

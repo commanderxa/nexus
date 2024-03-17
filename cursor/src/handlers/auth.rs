@@ -1,7 +1,7 @@
 use std::{convert::Infallible, sync::Arc};
 
 use chrono::{Duration, Utc};
-use orbis::{
+use cursorlib::{
     models::user::user::User,
     request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
     response::auth::AuthResponse,

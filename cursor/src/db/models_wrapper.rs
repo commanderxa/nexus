@@ -1,4 +1,4 @@
-use orbis::models::user::{role::Role, user::User};
+use cursorlib::models::user::{role::Role, user::User};
 use scylla::FromRow;
 use uuid::Uuid;
 

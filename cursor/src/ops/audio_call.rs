@@ -1,7 +1,7 @@
 use std::{error::Error, sync::Arc};
 
 use chrono::Duration;
-use orbis::{
+use cursorlib::{
     models::calls::audio_call::AudioCall,
     request::{call::CallRequest, IndexToken, Request},
 };
