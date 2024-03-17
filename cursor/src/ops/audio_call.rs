@@ -61,6 +61,7 @@ pub async fn connect_audio(
     match call_request.body.index {
         // if index message is START => notify all receiver sessions
         IndexToken::Start => {
+            // notify all receiver sessions
             for peer in state
                 .lock()
                 .await
@@ -71,6 +72,21 @@ pub async fn connect_audio(
             {
                 // sending the call to the receiver sessions
                 let _ = peer.1.tcp_sender.send(call_str.clone());
+            }
+
+            // notify all sender sessions except the one that had sent the message
+            for peer in state
+                .lock()
+                .await
+                .peers
+                .get_mut(&call_request.body.call.sides.get_sender())
+                .unwrap()
+                .iter_mut()
+            {
+                if peer.0 != &peer_uuid {
+                    // sending the call to the sender session
+                    let _ = peer.1.tcp_sender.send(call_str.clone());
+                }
             }
         }
         // if index message is ACCEPT => notify the receiver session and other
@@ -114,7 +130,6 @@ pub async fn connect_audio(
             }
         }
         // server never receives such index message
-        IndexToken::Accepted => (),
         // if the call is ended from any side => notify everyone
         IndexToken::End => {
             // notify the sender sessions
@@ -142,6 +157,10 @@ pub async fn connect_audio(
                 let _ = peer.1.tcp_sender.send(call_str.clone());
             }
         }
+        // includes IndexToken::Accepted
+        // since server will never receive this token
+        // as server sends it itself
+        _ => (),
     }
 
     Ok(())

@@ -11,6 +11,7 @@ use orbis::{
     request::{message::MessageRequest, Request},
     Message,
 };
+use uuid::Uuid;
 
 use crate::{errors::db::DbError, filters::auth::check_token, state::connection::ConnectionState};
 
@@ -20,10 +21,11 @@ use crate::{errors::db::DbError, filters::auth::check_token, state::connection::
 /// - Session
 /// - Message
 pub async fn send_message(
-    message: String,
+    message: (String, Uuid),
     session: Arc<Mutex<Session>>,
     state: Arc<Mutex<ConnectionState>>,
 ) -> Result<(), Box<dyn Error>> {
+    let (message, peer_uuid) = message;
     let phantom_message: Request<MessageRequest<EmptyMessageBody>> =
         serde_json::from_str(&message).unwrap();
 
@@ -61,7 +63,7 @@ pub async fn send_message(
     // parsing the message
     let msg = &serde_json::to_string(&message).unwrap();
 
-    // iterating over all peers, searching for a receiver
+    // iterating over all peers, searching for the receiver sessions
     for peer in state
         .lock()
         .await
@@ -72,6 +74,22 @@ pub async fn send_message(
     {
         // sending the message to the receiver
         let _ = peer.1.tcp_sender.send(msg.to_owned());
+    }
+
+    // iterating over all peers, searching for the sender sessions
+    // except the one that has sent this message
+    for peer in state
+        .lock()
+        .await
+        .peers
+        .get_mut(&message.sides.get_sender())
+        .unwrap()
+        .iter_mut()
+    {
+        if peer.0 != &peer_uuid {
+            // sending the message to the sender
+            let _ = peer.1.tcp_sender.send(msg.to_owned());
+        }
     }
 
     Ok(())
