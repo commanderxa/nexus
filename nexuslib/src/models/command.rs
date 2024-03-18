@@ -7,8 +7,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// Tells the server what function to call
 pub enum Command {
     Message,
-    AudioCall,
-    VideoCall,
+    MediaCall,
 }
 
 impl fmt::Display for Command {

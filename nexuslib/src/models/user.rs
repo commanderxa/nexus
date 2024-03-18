@@ -29,7 +29,7 @@ impl User {
     pub fn new(username: &str, password: &str, role: Option<Role>) -> (Self, [u8; 32]) {
         // init necessary values
         let user_uuid = Uuid::new_v4();
-        let secret = StaticSecret::new(rand_core::OsRng);
+        let secret = StaticSecret::random();
         let public_key = PublicKey::from(&secret).to_bytes();
 
         (

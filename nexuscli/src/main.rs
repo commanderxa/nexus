@@ -9,7 +9,6 @@ use sysinfo::{System, SystemExt};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
     net::{TcpStream, UdpSocket},
-    sync::mpsc,
 };
 
 use nexuslib::{
@@ -49,11 +48,11 @@ async fn main() {
         .expect("Not connected");
 
     let socket = UdpSocket::bind(stream.local_addr().unwrap()).await.unwrap();
-    const MAX_DATAGRAM_SIZE: usize = 65_000;
+    // const MAX_DATAGRAM_SIZE: usize = 65_000;
     socket.connect(&remote_addr).await.unwrap();
 
     let command: Command = Command::Message;
-    
+
     let mut sys = System::new();
     sys.refresh_system();
 
@@ -139,7 +138,7 @@ async fn main() {
                 .await
                 .unwrap();
         }
-        Command::AudioCall => {
+        Command::MediaCall => {
             let (reader, writer) = stream.split();
             let mut reader = BufReader::new(reader);
             let mut writer = BufWriter::new(writer);
@@ -149,7 +148,7 @@ async fn main() {
 
             let mut call_stack: Vec<AudioCall> = Vec::new();
 
-            let (tx, mut rx) = mpsc::channel::<(AudioCall, u32)>(1_000);
+            // let (tx, mut rx) = mpsc::channel::<(AudioCall, u32)>(1_000);
 
             loop {
                 let mut buf = String::new();
@@ -228,7 +227,6 @@ async fn main() {
                 }
             }
         }
-        Command::VideoCall => todo!(),
     }
 }
 

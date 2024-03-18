@@ -140,7 +140,7 @@ async fn tcp_listener_setup() -> Result<TcpListener, ()> {
         MoveToColumn(action_len),
         SetForegroundColor(Color::Green),
         Print("\tstarted\n"),
-        ResetColor
+        ResetColor,
     )
     .unwrap();
 

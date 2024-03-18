@@ -52,7 +52,7 @@ pub async fn send_message(
     let mut message = message.body.message;
     message.status.set_sent();
 
-    // checks if the message is ment to be sent directly (secretly)
+    // checks if the message is not ment to be sent directly (secretly)
     if !message.secret {
         // add the message to the DB
         if add_message(session, &message).await.is_err() {

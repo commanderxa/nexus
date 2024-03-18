@@ -87,8 +87,7 @@ pub async fn handle_stream(
                     // matches the operation from command
                     match req_command {
                         Command::Message => send_message((msg, peer.peer_uuid), session.clone(), state.clone()).await.unwrap(),
-                        Command::AudioCall => connect_audio(msg, session.clone(), state.clone(), peer_uuid).await.unwrap(),
-                        Command::VideoCall => todo!(),
+                        Command::MediaCall => connect_audio(msg, session.clone(), state.clone(), peer_uuid).await.unwrap(),
                     }
                 },
                 // error receiving a message
