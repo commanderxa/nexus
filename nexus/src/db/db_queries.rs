@@ -1,6 +1,6 @@
 // KEYSPACE
 pub static CREATE_KEYSPACE_QUERY: &str = r#"
-  CREATE KEYSPACE IF NOT EXISTS litera
+  CREATE KEYSPACE IF NOT EXISTS nexus
     WITH REPLICATION = {
       'class': 'SimpleStrategy',
       'replication_factor': 1
@@ -9,7 +9,7 @@ pub static CREATE_KEYSPACE_QUERY: &str = r#"
 
 // USERS
 pub static CREATE_USER_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.users (
+  CREATE TABLE IF NOT EXISTS nexus.users (
     uuid UUID,
     username text,
     password text,
@@ -22,7 +22,7 @@ pub static CREATE_USER_TABLE_QUERY: &str = r#"
 
 // CHAT KEYS
 pub static CREATE_CHAT_KEYS_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.secret_keys (
+  CREATE TABLE IF NOT EXISTS nexus.secret_keys (
     user UUID,
     private_key blob,
     PRIMARY KEY(user)
@@ -31,7 +31,7 @@ pub static CREATE_CHAT_KEYS_TABLE_QUERY: &str = r#"
 
 // SESSION
 pub static CREATE_SESSION_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.sessions (
+  CREATE TABLE IF NOT EXISTS nexus.sessions (
     jwt text,
     user UUID,
     location text,
@@ -45,7 +45,7 @@ pub static CREATE_SESSION_TABLE_QUERY: &str = r#"
 
 // MESSAGES
 pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.messages (
+  CREATE TABLE IF NOT EXISTS nexus.messages (
     uuid UUID,
     text text,
     nonce text,
@@ -66,7 +66,7 @@ pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
 
 // CALLS
 pub static CREATE_CALLS_TABLE_QUERY: &str = r#"
-  CREATE TABLE IF NOT EXISTS litera.calls (
+  CREATE TABLE IF NOT EXISTS nexus.calls (
     uuid UUID,
     sender UUID,
     receiver UUID,

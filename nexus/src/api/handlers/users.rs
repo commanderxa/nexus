@@ -18,7 +18,7 @@ pub async fn list(session: Arc<Mutex<Session>>, _uid: ()) -> Result<impl warp::R
     let users = session
         .lock()
         .await
-        .query("SELECT * from litera.users", &[])
+        .query("SELECT * from nexus.users", &[])
         .await
         .unwrap()
         .rows
@@ -41,7 +41,7 @@ pub async fn get_by_uuid(
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.users WHERE uuid = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.users WHERE uuid = ? ALLOW FILTERING;",
             (user_uuid,),
         )
         .await
@@ -65,7 +65,7 @@ pub async fn get_by_username(
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.users WHERE username = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.users WHERE username = ? ALLOW FILTERING;",
             (username,),
         )
         .await
@@ -108,7 +108,7 @@ pub async fn create(
     // prepare statements
     let prepared_user: PreparedStatement = session.lock().await
         .prepare(
-            "INSERT INTO litera.users (uuid, username, password, role, public_key, created_at) VALUES(?, ?, ?, ?, ?, ?);",
+            "INSERT INTO nexus.users (uuid, username, password, role, public_key, created_at) VALUES(?, ?, ?, ?, ?, ?);",
         )
         .await
         .unwrap();
@@ -116,7 +116,7 @@ pub async fn create(
     let prepared_secret: PreparedStatement = session
         .lock()
         .await
-        .prepare("INSERT INTO litera.secret_keys (user, private_key) VALUES(?, ?);")
+        .prepare("INSERT INTO nexus.secret_keys (user, private_key) VALUES(?, ?);")
         .await
         .unwrap();
 
@@ -161,7 +161,7 @@ pub async fn update(
         .lock()
         .await
         .query(
-            "UPDATE litera.users SET username = ? WHERE username = ?;",
+            "UPDATE nexus.users SET username = ? WHERE username = ?;",
             (user.username.to_owned(),),
         )
         .await
@@ -192,7 +192,7 @@ pub async fn delete(
         .lock()
         .await
         .query(
-            "DELETE FROM litera.users WHERE users.uuid = ?;",
+            "DELETE FROM nexus.users WHERE users.uuid = ?;",
             (user_uuid,),
         )
         .await
@@ -210,7 +210,7 @@ pub async fn check_user_by_uuid(
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.users WHERE uuid = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.users WHERE uuid = ? ALLOW FILTERING;",
             (user_uuid,),
         )
         .await
@@ -233,7 +233,7 @@ pub async fn check_user_by_username(
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.users WHERE username = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.users WHERE username = ? ALLOW FILTERING;",
             (username.to_owned(),),
         )
         .await
@@ -253,7 +253,7 @@ pub async fn get_uuid_by_token(session: Arc<Mutex<Session>>, token: &str) -> Res
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.sessions WHERE jwt = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.sessions WHERE jwt = ? ALLOW FILTERING;",
             (token,),
         )
         .await
@@ -292,7 +292,7 @@ pub async fn get_key(
     let prepared = session
         .lock()
         .await
-        .prepare("SELECT * FROM litera.secret_keys WHERE user = ? ALLOW FILTERING;")
+        .prepare("SELECT * FROM nexus.secret_keys WHERE user = ? ALLOW FILTERING;")
         .await
         .unwrap();
 

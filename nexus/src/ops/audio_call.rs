@@ -175,7 +175,7 @@ pub async fn add_call(
         .lock()
         .await
         .prepare(
-            "INSERT INTO litera.calls (uuid, sender, receiver, call_type, duration, accepted, secret, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO nexus.calls (uuid, sender, receiver, call_type, duration, accepted, secret, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
         )
         .await
         .unwrap();
@@ -214,7 +214,7 @@ pub async fn update_call(
     let prepared: PreparedStatement = session
         .lock()
         .await
-        .prepare("UPDATE litera.calls SET duration = ?, accepted = ? WHERE uuid = ? AND created_at = ? IF EXISTS;")
+        .prepare("UPDATE nexus.calls SET duration = ?, accepted = ? WHERE uuid = ? AND created_at = ? IF EXISTS;")
         .await
         .unwrap();
 

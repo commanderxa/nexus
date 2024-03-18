@@ -104,7 +104,7 @@ pub async fn add_message<T: MessageContent + Debug>(
         .lock()
         .await
         .prepare("
-            INSERT INTO litera.messages 
+            INSERT INTO nexus.messages 
             (uuid, text, nonce, filename, filepath, sender, receiver, sent, read, edited, msg_type, created_at) 
             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         ",

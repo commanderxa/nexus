@@ -1,21 +1,21 @@
 use std::{convert::Infallible, sync::Arc};
 
 use chrono::{Duration, Utc};
-use nexuslib::{
-    models::user::User,
-    request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
-    response::auth::AuthResponse,
-};
 use scylla::{frame::value::Timestamp, prepared_statement::PreparedStatement, Session};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 use warp::{hyper::StatusCode, reject, Reply};
 
 use crate::{
-    db::models_wrapper::UserDB,
-    errors::{db::DbError, jwt::JWTError},
     api::filters::auth::check_token,
     api::jwt::generate_jwt,
+    db::models_wrapper::UserDB,
+    errors::{db::DbError, jwt::JWTError},
+};
+use nexuslib::{
+    models::user::User,
+    request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
+    response::auth::AuthResponse,
 };
 
 use super::users::create;
@@ -77,7 +77,7 @@ pub async fn logout(
     match session
         .lock()
         .await
-        .query("DELETE FROM litera.sessions WHERE jwt = ?;", (body.token,))
+        .query("DELETE FROM nexus.sessions WHERE jwt = ?;", (body.token,))
         .await
     {
         Ok(_) => Ok(StatusCode::UNAUTHORIZED.into_response()),
@@ -95,7 +95,7 @@ pub async fn validate_user(
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.users WHERE username = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.users WHERE username = ? ALLOW FILTERING;",
             (body.username,),
         )
         .await
@@ -139,7 +139,7 @@ pub async fn add_jwt_session(
 
     let prepared_result= session.lock().await
         .prepare(
-            "INSERT INTO litera.sessions (jwt, user, location, device_name, device_type, device_os, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO nexus.sessions (jwt, user, location, device_name, device_type, device_os, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);",
         )
         .await;
 
@@ -177,7 +177,7 @@ pub async fn validate_session(session: Arc<Mutex<Session>>, token: &str) -> Resu
         .lock()
         .await
         .query(
-            "SELECT * FROM litera.sessions WHERE jwt = ? ALLOW FILTERING;",
+            "SELECT * FROM nexus.sessions WHERE jwt = ? ALLOW FILTERING;",
             (token,),
         )
         .await
