@@ -16,8 +16,8 @@ pub async fn run_http(session: Arc<Mutex<Session>>) {
     tokio::spawn(async move {
         warp::serve(routes)
             .tls()
-            .cert_path("./certs/cert.pem")
-            .key_path("./certs/key.pem")
+            .cert_path(&std::env::var("TLS_CERT_PATH").unwrap())
+            .key_path(&std::env::var("TLS_KEY_PATH").unwrap())
             .run(([127, 0, 0, 1], 8082))
             .await;
     });
