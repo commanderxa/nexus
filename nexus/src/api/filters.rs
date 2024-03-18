@@ -21,7 +21,7 @@ pub fn with_auth(
     role: Role,
 ) -> impl Filter<Extract = ((),), Error = Rejection> + Clone {
     headers_cloned()
-        .map(move |headers: HeaderMap<HeaderValue>| (role.clone(), headers))
+        .map(move |headers: HeaderMap<HeaderValue>| (role, headers))
         .and(with_session(session))
         .and_then(authorize)
 }

@@ -71,7 +71,7 @@ pub async fn logout(
 ) -> Result<warp::reply::Response, Infallible> {
     let _token_decoded = check_token(session.clone(), &body.token)
         .await
-        .map_err(|_| reject::custom(JWTError::JWTTokenError))
+        .map_err(|_| reject::custom(JWTError::JWTToken))
         .unwrap();
 
     match session
@@ -129,7 +129,7 @@ pub async fn add_jwt_session(
     meta: AuthRequestMeta,
 ) -> Result<String, DbError> {
     let user = user.to_owned();
-    let token = generate_jwt(&user.uuid.to_string(), user.role.clone());
+    let token = generate_jwt(&user.uuid.to_string(), user.role);
 
     if token.is_err() {
         // return Err(token.err().unwrap());
@@ -185,7 +185,7 @@ pub async fn validate_session(session: Arc<Mutex<Session>>, token: &str) -> Resu
         .rows()
         .unwrap();
 
-    if result.len() <= 0 {
+    if result.is_empty() {
         return Err(DbError::NotFound);
     }
 

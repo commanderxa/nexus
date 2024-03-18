@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Debug, sync::Arc};
+use std::{error::Error, sync::Arc};
 
 use chrono::Duration;
 use scylla::{
@@ -7,9 +7,10 @@ use scylla::{
 use tokio::sync::Mutex;
 
 use nexuslib::{
-    models::message::{r#type::MessageType, text::TextMessage, EmptyMessageBody, MessageContent},
+    models::message::{
+        media::MediaAttachment, r#type::MessageType, text::TextMessage, EmptyMessageBody,
+    },
     request::{message::MessageRequest, Request},
-    Message,
 };
 use uuid::Uuid;
 
@@ -17,12 +18,12 @@ use crate::{
     api::filters::auth::check_token, errors::db::DbError, state::connection::ConnectionState,
 };
 
-/// Sends a message to other user
+/// Streams a file into the server
 ///
 /// Requires:
 /// - Session
 /// - Message
-pub async fn send_message(
+pub async fn stream_file(
     message: (String, Uuid),
     session: Arc<Mutex<Session>>,
     state: Arc<Mutex<ConnectionState>>,
@@ -50,13 +51,27 @@ pub async fn send_message(
 
     // when message arrives on the server, mark it as `sent`
     let mut message = message.body.message;
+
+    // add file uploading logic
+    todo!();
+
     message.status.set_sent();
 
     // checks if the message is not ment to be sent directly (secretly)
     if !message.secret {
-        // add the message to the DB
-        if add_message(session, &message).await.is_err() {
-            log::error!("Error adding message to the DB!");
+        for attachment in message.media.clone().unwrap().attachments {
+            // add the message to the DB
+            if add_file(
+                session.clone(),
+                &attachment,
+                message.sides.get_sender().clone(),
+                message.get_created_at().timestamp(),
+            )
+            .await
+            .is_err()
+            {
+                log::error!("Error adding message to the DB!");
+            }
         }
     }
 
@@ -96,9 +111,11 @@ pub async fn send_message(
 }
 
 /// Adds message to the DB
-pub async fn add_message<T: MessageContent + Debug>(
+pub async fn add_file(
     session: Arc<Mutex<Session>>,
-    message: &Message<T>,
+    attachment: &MediaAttachment,
+    sender: Uuid,
+    created_at: i64,
 ) -> Result<QueryResult, DbError> {
     let prepared: PreparedStatement = session
         .lock()
@@ -106,8 +123,8 @@ pub async fn add_message<T: MessageContent + Debug>(
         .prepare(
             "
             INSERT INTO nexus.messages 
-            (uuid, text, nonce, media, sender, receiver, sent, read, edited, message_type, created_at) 
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            (uuid, name, path, type, sender, created_at) 
+            VALUES(?, ?, ?, ?, ?, ?);
         ",
         )
         .await
@@ -119,17 +136,12 @@ pub async fn add_message<T: MessageContent + Debug>(
         .execute(
             &prepared,
             (
-                message.uuid,
-                message.content.get_text().unwrap(),
-                message.get_nonce(),
-                "".to_owned(), // UUIDs array of media (in a form of string, empy for now)
-                message.sides.get_sender(),
-                message.sides.get_receiver(),
-                message.status.get_sent(),
-                message.status.get_read(),
-                message.status.get_edited(),
-                message.get_message_type().get_index() as i8,
-                Timestamp(Duration::try_seconds(message.get_created_at().timestamp()).unwrap()),
+                attachment.uuid,
+                "".to_owned(),
+                "".to_owned(),
+                sender,
+                attachment.get_type().get_index() as i8,
+                Timestamp(Duration::try_seconds(created_at).unwrap()),
             ),
         )
         .await

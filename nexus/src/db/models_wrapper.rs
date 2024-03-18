@@ -6,7 +6,7 @@ pub struct UserDB(User);
 
 impl UserDB {
     pub fn get_user(&self) -> User {
-        return self.0.to_owned();
+        self.0.to_owned()
     }
 }
 
@@ -26,10 +26,10 @@ impl FromRow for UserDB {
         let role = serde_json::from_str::<Role>(&role.to_string()).unwrap();
 
         Ok(Self(User {
-            uuid: uuid,
+            uuid,
             username: username.unwrap(),
             password: password.unwrap(),
-            role: role,
+            role,
             public_key: public_key.unwrap(),
             created_at: created_at.num_seconds(),
         }))

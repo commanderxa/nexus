@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
-use super::{msg_type::MessageType, MessageContent};
+use super::{r#type::MessageType, MessageContent};
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Text content of a `Message`

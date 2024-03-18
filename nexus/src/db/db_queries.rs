@@ -21,7 +21,7 @@ pub static CREATE_USER_TABLE_QUERY: &str = r#"
 "#;
 
 // CHAT KEYS
-pub static CREATE_CHAT_KEYS_TABLE_QUERY: &str = r#"
+pub static CREATE_SECRET_KEYS_TABLE_QUERY: &str = r#"
   CREATE TABLE IF NOT EXISTS nexus.secret_keys (
     user UUID,
     private_key blob,
@@ -48,15 +48,14 @@ pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
   CREATE TABLE IF NOT EXISTS nexus.messages (
     uuid UUID,
     text text,
+    media text,
     nonce text,
-    filename text,
-    filepath text,
     sender UUID,
     receiver UUID,
     sent Boolean,
     read Boolean,
     edited Boolean,
-    msg_type Tinyint,
+    message_type Tinyint,
     secret Boolean,
     created_at timestamp,
     edited_at timestamp,
@@ -78,3 +77,17 @@ pub static CREATE_CALL_TABLE_QUERY: &str = r#"
     PRIMARY KEY(uuid, created_at))
     WITH CLUSTERING ORDER BY (created_at DESC);
 "#;
+
+// CALLS
+pub static CREATE_MEDIA_TABLE_QUERY: &str = r#"
+  CREATE TABLE IF NOT EXISTS nexus.media (
+    uuid UUID,
+    name text,
+    path text,
+    type Tinyint,
+    sender UUID,
+    created_at timestamp,
+    PRIMARY KEY(uuid, created_at))
+    WITH CLUSTERING ORDER BY (created_at DESC);
+"#;
+

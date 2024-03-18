@@ -51,7 +51,7 @@ async fn main() {
     // const MAX_DATAGRAM_SIZE: usize = 65_000;
     socket.connect(&remote_addr).await.unwrap();
 
-    let command: Command = Command::MediaCall;
+    let command: Command = Command::Message;
 
     let mut sys = System::new();
     sys.refresh_system();
@@ -138,7 +138,7 @@ async fn main() {
                 .await
                 .unwrap();
         }
-        Command::MediaCall => {
+        Command::Call => {
             let (reader, writer) = stream.split();
             let mut reader = BufReader::new(reader);
             let mut writer = BufWriter::new(writer);
@@ -227,6 +227,7 @@ async fn main() {
                 }
             }
         }
+        Command::File => todo!(),
     }
 }
 

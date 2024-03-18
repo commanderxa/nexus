@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{errors::db::DbError, api::filters::auth::check_token, state::connection::ConnectionState};
 
-pub async fn connect_audio(
+pub async fn connect_call(
     call: String,
     session: Arc<Mutex<scylla::Session>>,
     state: Arc<Mutex<ConnectionState>>,
@@ -101,7 +101,7 @@ pub async fn connect_audio(
                 .unwrap()
                 .iter_mut()
             {
-                if peer.0.clone() != call_request.body.call.peers.get_sender().unwrap() {
+                if *peer.0 != call_request.body.call.peers.get_sender().unwrap() {
                     // sending the call to the other sender sessions
                     call_request.body.index = IndexToken::Accepted;
                     let call_str = serde_json::to_string(&call_request.body).unwrap();
@@ -122,7 +122,7 @@ pub async fn connect_audio(
                 .iter_mut()
             {
                 // sending the call to the other receiver sessions
-                if peer.0.clone() != call_request.body.call.peers.get_receiver().unwrap() {
+                if *peer.0 != call_request.body.call.peers.get_receiver().unwrap() {
                     call_request.body.index = IndexToken::Accepted;
                     let call_str = serde_json::to_string(&call_request.body).unwrap();
                     let _ = peer.1.tcp_sender.send(call_str.clone());

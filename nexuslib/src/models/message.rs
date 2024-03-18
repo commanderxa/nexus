@@ -4,14 +4,14 @@ use uuid::Uuid;
 
 use crate::{request::sides::RequestSides, utils::vec_to_string};
 
-use self::{msg_type::MessageType, status::MessageStatus};
+use self::{media::Media, r#type::MessageType, status::MessageStatus};
 
-pub mod file;
-pub mod msg_type;
+pub mod media;
 pub mod status;
 pub mod text;
+pub mod r#type;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 /// The message
 pub struct Message<T>
 where
@@ -24,8 +24,9 @@ where
     pub status: MessageStatus,
     pub ttl: Option<i64>,
     pub secret: bool,
+    pub media: Option<Media>,
 
-    msg_type: MessageType,
+    message_type: MessageType,
     created_at: i64,
     editead_at: Option<i64>,
 }
@@ -33,7 +34,7 @@ where
 impl<T: MessageContent> Message<T> {
     /// Creates a new `Message`
     pub fn new(content: T, nonce: Vec<u8>, sender: Uuid, receiver: Uuid) -> Self {
-        let msg_type: MessageType = content.get_type().unwrap();
+        let message_type: MessageType = content.get_type().unwrap();
         Self {
             uuid: Uuid::new_v4(),
             content,
@@ -42,7 +43,8 @@ impl<T: MessageContent> Message<T> {
             status: MessageStatus::new(),
             ttl: None,
             secret: false,
-            msg_type,
+            media: None,
+            message_type,
             created_at: Utc::now().timestamp(),
             editead_at: None,
         }
@@ -62,15 +64,13 @@ impl<T: MessageContent> Message<T> {
     /// Returns `timestamp` as `Option<DateTime<Utc>>` that
     /// specifies the time when this `Message` was edited (if it was)
     pub fn get_edited_at(&self) -> Option<DateTime<Utc>> {
-        match self.editead_at {
-            Some(value) => Some(Utc.timestamp_opt(value, 0).unwrap()),
-            None => None,
-        }
+        self.editead_at
+            .map(|value| Utc.timestamp_opt(value, 0).unwrap())
     }
 
     /// Returns the type of the `Message`
-    pub fn get_msg_type(&self) -> MessageType {
-        self.msg_type
+    pub fn get_message_type(&self) -> MessageType {
+        self.message_type
     }
 }
 

@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 use crate::{
     api::handlers::users::get_uuid_by_token,
-    ops::{call::connect_audio, message::send_message},
+    ops::{call::connect_call, file::stream_file, message::send_message},
     state::{
         connection::{ConnectionState, SessionSocket},
         peer::Peer,
@@ -87,7 +87,8 @@ pub async fn handle_stream(
                     // matches the operation from command
                     match req_command {
                         Command::Message => send_message((msg, peer.peer_uuid), session.clone(), state.clone()).await.unwrap(),
-                        Command::MediaCall => connect_audio(msg, session.clone(), state.clone(), peer_uuid).await.unwrap(),
+                        Command::Call => connect_call(msg, session.clone(), state.clone(), peer_uuid).await.unwrap(),
+                        Command::File => stream_file((msg, peer.peer_uuid), session.clone(), state.clone()).await.unwrap(),
                     }
                 },
                 // error receiving a message
@@ -101,7 +102,7 @@ pub async fn handle_stream(
     }
 
     {
-        // removes user from acrive state when the stream is canceled
+        // removes user from active state when the stream is canceled
         remove_peer(state.clone(), user_uuid, peer_uuid).await;
     }
 
@@ -142,7 +143,7 @@ async fn add_peer(
         None => {
             let hm_empty: HashMap<Uuid, SessionSocket> = HashMap::new();
             // inserting new user to the peers
-            state.peers.insert(user_uuid.clone(), hm_empty);
+            state.peers.insert(user_uuid, hm_empty);
 
             // creating a new session for this new peer
             state

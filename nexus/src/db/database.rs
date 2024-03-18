@@ -14,11 +14,7 @@ pub async fn create_session(uri: &str) -> Result<Session> {
 
 pub async fn initialize(session: &Session) -> Result<()> {
     create_keyspace(session).await?;
-    create_user_table(session).await?;
-    create_keys_table(session).await?;
-    create_session_table(session).await?;
-    create_message_table(session).await?;
-    create_call_table(session).await?;
+    create_tables(session).await?;
     Ok(())
 }
 
@@ -30,41 +26,30 @@ async fn create_keyspace(session: &Session) -> Result<()> {
         .map_err(From::from)
 }
 
-async fn create_user_table(session: &Session) -> Result<()> {
-    session
-        .query(CREATE_USER_TABLE_QUERY, ())
-        .await
-        .map(|_| ())
-        .map_err(From::from)
+async fn create_tables(session: &Session) -> Result<()> {
+    let tables = [
+        CREATE_USER_TABLE_QUERY,
+        CREATE_SECRET_KEYS_TABLE_QUERY,
+        CREATE_SESSION_TABLE_QUERY,
+        CREATE_MESSAGE_TABLE_QUERY,
+        CREATE_CALL_TABLE_QUERY,
+        CREATE_MEDIA_TABLE_QUERY,
+    ];
+
+    for table in tables {
+        let res = create_entity(session, table).await;
+        if res.is_err() {
+            return res;
+        }
+    }
+
+    Ok(())
 }
 
-async fn create_keys_table(session: &Session) -> Result<()> {
+/// Function to create a single entity
+async fn create_entity(session: &Session, query: &str) -> Result<()> {
     session
-        .query(CREATE_CHAT_KEYS_TABLE_QUERY, ())
-        .await
-        .map(|_| ())
-        .map_err(From::from)
-}
-
-async fn create_session_table(session: &Session) -> Result<()> {
-    session
-        .query(CREATE_SESSION_TABLE_QUERY, ())
-        .await
-        .map(|_| ())
-        .map_err(From::from)
-}
-
-async fn create_message_table(session: &Session) -> Result<()> {
-    session
-        .query(CREATE_MESSAGE_TABLE_QUERY, ())
-        .await
-        .map(|_| ())
-        .map_err(From::from)
-}
-
-async fn create_call_table(session: &Session) -> Result<()> {
-    session
-        .query(CREATE_CALL_TABLE_QUERY, ())
+        .query(query, ())
         .await
         .map(|_| ())
         .map_err(From::from)

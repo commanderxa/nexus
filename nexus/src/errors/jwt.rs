@@ -5,17 +5,17 @@ use warp::reject::Reject;
 #[derive(Debug, Error)]
 pub enum JWTError {
     #[error("Wrong Credentials")]
-    WrongCredentialsError,
+    WrongCredentials,
     #[error("JWT is not valid")]
-    JWTTokenError,
-    #[error("JWT creation Error")]
-    JWTTokenCreationError,
+    JWTToken,
+    #[error("JWT creation error")]
+    JWTTokenCreation,
     #[error("No Auth Header")]
-    NoAuthHeaderError,
+    NoAuthHeader,
     #[error("Invalid Auth Header")]
-    InvalidAuthHeaderError,
+    InvalidAuthHeader,
     #[error("No Permission")]
-    NoPermissionError,
+    NoPermission,
 }
 
 impl Reject for JWTError {}

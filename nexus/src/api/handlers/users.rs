@@ -129,7 +129,7 @@ pub async fn create(
         user.uuid,
         &user.username.to_owned(),
         &user.password.to_owned(),
-        (&user.role.to_owned().get_index()).to_owned() as i8,
+        (user.role.to_owned().get_index()).to_owned() as i8,
         &user.public_key_str().to_owned(),
         Timestamp(Duration::try_seconds(user.created_at).unwrap()),
     );
@@ -217,7 +217,7 @@ pub async fn check_user_by_uuid(
         .unwrap()
         .rows
     {
-        if rows.len() > 0 {
+        if !rows.is_empty() {
             return Err(DbError::AlreadyExists);
         }
     }
@@ -240,7 +240,7 @@ pub async fn check_user_by_username(
         .unwrap()
         .rows
     {
-        if rows.len() > 0 {
+        if !rows.is_empty() {
             return Err(DbError::AlreadyExists);
         }
     }

@@ -19,10 +19,10 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
         (StatusCode::NOT_FOUND, "Not Found".to_string())
     } else if let Some(e) = err.find::<JWTError>() {
         match e {
-            JWTError::WrongCredentialsError => (StatusCode::FORBIDDEN, e.to_string()),
-            JWTError::JWTTokenError => (StatusCode::UNAUTHORIZED, e.to_string()),
-            JWTError::NoPermissionError => (StatusCode::UNAUTHORIZED, e.to_string()),
-            JWTError::JWTTokenCreationError => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            JWTError::WrongCredentials => (StatusCode::FORBIDDEN, e.to_string()),
+            JWTError::JWTToken => (StatusCode::UNAUTHORIZED, e.to_string()),
+            JWTError::NoPermission => (StatusCode::UNAUTHORIZED, e.to_string()),
+            JWTError::JWTTokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             _ => (StatusCode::BAD_REQUEST, e.to_string()),
         }
     } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
@@ -38,7 +38,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     };
 
     let response = warp::reply::json(&ErrorResponse {
-        message: message,
+        message,
         status: code.to_string(),
     });
 

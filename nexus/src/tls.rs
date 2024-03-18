@@ -25,10 +25,9 @@ pub fn get_tls_config() -> io::Result<ServerConfig> {
     let certs = load_certs(Path::new(&std::env::var("TLS_CERT_PATH").unwrap()))?;
     let mut keys = load_keys(Path::new(&std::env::var("TLS_KEY_PATH").unwrap()))?;
 
-    let config = ServerConfig::builder()
+    ServerConfig::builder()
         .with_safe_defaults()
         .with_no_client_auth()
         .with_single_cert(certs, keys.remove(0))
-        .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err));
-    config
+        .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))
 }

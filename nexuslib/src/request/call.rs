@@ -30,6 +30,6 @@ impl<T: CallContent> CallRequest<T> {
 
 impl<T: CallContent> RequestBody for CallRequest<T> {
     fn op(&self) -> Command {
-        Command::MediaCall
+        Command::Call
     }
 }

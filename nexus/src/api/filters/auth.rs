@@ -81,18 +81,18 @@ pub async fn authorize(
         Ok(token) => {
             let decoded = check_token(session, &token)
                 .await
-                .map_err(|_| reject::custom(JWTError::JWTTokenError))?;
+                .map_err(|_| reject::custom(JWTError::JWTToken))?;
 
             if ![Role::Admin, Role::Moderator]
                 .contains(&Role::from_str(&decoded.claims.role).unwrap())
                 && [Role::Admin, Role::Moderator].contains(&role)
             {
-                return Err(reject::custom(JWTError::NoPermissionError));
+                return Err(reject::custom(JWTError::NoPermission));
             }
 
             Ok(())
         }
-        Err(e) => return Err(reject::custom(e)),
+        Err(e) => Err(reject::custom(e)),
     }
 }
 
@@ -105,12 +105,12 @@ pub async fn check_token(
         &DecodingKey::from_secret(b"123"),
         &Validation::new(Algorithm::HS512),
     )
-    .map_err(|_| JWTError::JWTTokenError)?;
+    .map_err(|_| JWTError::JWTToken)?;
 
     // Check tokens
-    let validated = validate_session(session, &token).await;
+    let validated = validate_session(session, token).await;
     if validated.is_err() {
-        return Err(JWTError::JWTTokenError);
+        return Err(JWTError::JWTToken);
     }
     Ok(decoded)
 }
