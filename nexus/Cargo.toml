@@ -29,9 +29,14 @@ tokio-rustls = { workspace = true }
 futures = { workspace = true }
 rustls-pemfile = "1.0.1"
 
-# http server & DB
+# http
 warp = { version = "0.3.3", features = ["tokio-rustls", "tls"] }
+
+# database
 scylla = "0.7.0"
+
+# storage
+minio = { git = "https://github.com/minio/minio-rs.git" }
 
 # crypto
 jsonwebtoken = "8.2.0"

@@ -65,7 +65,7 @@ pub static CREATE_MESSAGE_TABLE_QUERY: &str = r#"
 "#;
 
 // CALLS
-pub static CREATE_CALLS_TABLE_QUERY: &str = r#"
+pub static CREATE_CALL_TABLE_QUERY: &str = r#"
   CREATE TABLE IF NOT EXISTS nexus.calls (
     uuid UUID,
     sender UUID,

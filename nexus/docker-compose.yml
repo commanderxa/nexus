@@ -16,8 +16,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER} # Set access key
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD} # Set secret key
     ports:
-      - "9000:9000" # Map container port 9000 to host port 9000 (for S3 API access)
-      - "9001:9001" # Map container port 9001 to host port 9001 (for Minio console access)
+      - ${MINIO_PORT}:${MINIO_PORT} # S3 API access
+      - ${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT} # Minio console access
     command: "server /data --console-address :9001"
     restart: always
 

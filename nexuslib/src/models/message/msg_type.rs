@@ -5,11 +5,12 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Copy)]
 #[repr(u8)]
 /// Type of a `Message`
-/// 
+///
 /// Can be represented as u8 index
 pub enum MessageType {
     Text,
     Audio,
+    Image,
     Video,
     File,
 }

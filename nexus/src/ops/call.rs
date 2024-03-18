@@ -2,7 +2,7 @@ use std::{error::Error, sync::Arc};
 
 use chrono::Duration;
 use nexuslib::{
-    models::calls::audio_call::AudioCall,
+    models::call::media_call::MediaCall,
     request::{call::CallRequest, IndexToken, Request},
 };
 use scylla::{
@@ -19,7 +19,7 @@ pub async fn connect_audio(
     state: Arc<Mutex<ConnectionState>>,
     peer_uuid: Uuid,
 ) -> Result<(), Box<dyn Error>> {
-    let mut call_request: Request<CallRequest<AudioCall>> = serde_json::from_str(&call).unwrap();
+    let mut call_request: Request<CallRequest<MediaCall>> = serde_json::from_str(&call).unwrap();
 
     // verifying whether the token is valid
     let token_verify = check_token(session.clone(), &call_request.token).await;
@@ -169,7 +169,7 @@ pub async fn connect_audio(
 /// Adds a call to the DB
 pub async fn add_call(
     session: Arc<Mutex<Session>>,
-    call: &AudioCall,
+    call: &MediaCall,
 ) -> Result<QueryResult, DbError> {
     let prepared: PreparedStatement = session
         .lock()
@@ -209,7 +209,7 @@ pub async fn add_call(
 /// Updates the call (duration, accepted) in the DB
 pub async fn update_call(
     session: Arc<Mutex<Session>>,
-    call: &AudioCall,
+    call: &MediaCall,
 ) -> Result<QueryResult, DbError> {
     let prepared: PreparedStatement = session
         .lock()

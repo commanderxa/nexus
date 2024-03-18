@@ -10,7 +10,7 @@ use tokio::{
 
 use nexuslib::{
     errors::stream::StreamError,
-    models::{calls::audio_call::AudioCall, command::Command},
+    models::{call::media_call::MediaCall, command::Command},
     request::{EmptyRequestBody, Request},
     response::{Response, ResponseStatus, ResponseStatusCode},
 };
@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 use crate::{
     api::handlers::users::get_uuid_by_token,
-    ops::{audio_call::connect_audio, message::send_message},
+    ops::{call::connect_audio, message::send_message},
     state::{
         connection::{ConnectionState, SessionSocket},
         peer::Peer,
@@ -188,7 +188,7 @@ pub async fn handle_udp(
 ) -> Result<(), Box<dyn Error>> {
     let r = Arc::new(sock);
     let s = r.clone();
-    let (tx, mut rx) = mpsc::channel::<(AudioCall, SocketAddr)>(1_000);
+    let (tx, mut rx) = mpsc::channel::<(MediaCall, SocketAddr)>(1_000);
 
     let mut buf = [0; 1024];
     tokio::select! {
@@ -204,7 +204,7 @@ pub async fn handle_udp(
                 println!("{:?} bytes received from {:?}", len, addr);
 
                 // deserializing call and extracting the receiver
-                let call = AudioCall::from_bytes(buf.to_vec());
+                let call = MediaCall::from_bytes(buf.to_vec());
                 let receiver = &call.sides.get_receiver().to_owned();
                 let receiver_peer = &call.peers.get_receiver().to_owned().unwrap();
                 let recv_addr = state.lock().await.peers

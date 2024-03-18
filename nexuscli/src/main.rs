@@ -12,7 +12,7 @@ use tokio::{
 };
 
 use nexuslib::{
-    models::{calls::audio_call::AudioCall, command::Command, user::User},
+    models::{call::media_call::MediaCall, command::Command, user::User},
     request::{
         auth::{AuthRequest, AuthRequestMeta},
         call::CallRequest,
@@ -51,7 +51,7 @@ async fn main() {
     // const MAX_DATAGRAM_SIZE: usize = 65_000;
     socket.connect(&remote_addr).await.unwrap();
 
-    let command: Command = Command::Message;
+    let command: Command = Command::MediaCall;
 
     let mut sys = System::new();
     sys.refresh_system();
@@ -146,9 +146,9 @@ async fn main() {
             let stream = tokio::io::stdin();
             let mut lines = FramedRead::new(stream, LinesCodec::new());
 
-            let mut call_stack: Vec<AudioCall> = Vec::new();
+            let mut call_stack: Vec<MediaCall> = Vec::new();
 
-            // let (tx, mut rx) = mpsc::channel::<(AudioCall, u32)>(1_000);
+            // let (tx, mut rx) = mpsc::channel::<(MediaCall, u32)>(1_000);
 
             loop {
                 let mut buf = String::new();
@@ -158,7 +158,7 @@ async fn main() {
                     result = reader.read_line(&mut buf) => {
                         let _result = result.unwrap();
 
-                        let call_req: CallRequest<AudioCall> = serde_json::from_str(&buf).unwrap();
+                        let call_req: CallRequest<MediaCall> = serde_json::from_str(&buf).unwrap();
                         let req_act = &call_req.index;
 
                         println!("Received: {req_act:#?}");
@@ -169,7 +169,7 @@ async fn main() {
 
                         if call_req.index == IndexToken::Accept {
                             let message = "Hello!".as_bytes().to_vec();
-                            let data = AudioCall::new(user.uuid, receiver.uuid, message, vec![], false);
+                            let data = MediaCall::new(user.uuid, receiver.uuid, message, vec![], false);
                             let data = bincode::serialize(&data).unwrap();
 
                             socket.send(&data).await.unwrap();
@@ -210,7 +210,7 @@ async fn main() {
                             writer.write_all(&req_json).await.unwrap();
                             writer.flush().await.unwrap();
                         } else {
-                            let call = AudioCall::new(user.uuid, receiver.uuid, vec![], vec![], false);
+                            let call = MediaCall::new(user.uuid, receiver.uuid, vec![], vec![], false);
                             let req_body = CallRequest::new(call, IndexToken::Start);
 
                             let req = Request::new(req_body.op(), req_body, token);

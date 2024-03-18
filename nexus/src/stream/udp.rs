@@ -41,11 +41,10 @@ async fn udp_socket_setup() -> Result<UdpSocket, ()> {
         Print(action),
         SetAttribute(crossterm::style::Attribute::Reset),
         SetForegroundColor(Color::Yellow),
-        Print("\tstarting")
+        Print("\tstarting"),
+        SavePosition
     )
     .unwrap();
-
-    execute!(stdout, SavePosition).unwrap();
 
     let start_time = Instant::now();
     let mut udp_socket = _udp_socket_setup().await;
@@ -56,27 +55,19 @@ async fn udp_socket_setup() -> Result<UdpSocket, ()> {
             execute!(
                 stdout,
                 MoveToColumn(action_len),
-                Clear(ClearType::UntilNewLine)
-            )
-            .unwrap();
-
-            execute!(
-                stdout,
+                Clear(ClearType::UntilNewLine),
                 MoveToColumn(action_len),
                 SetForegroundColor(Color::Red),
                 Print("\tfailed\n"),
-                ResetColor
+                ResetColor,
+                cursor::Show
             )
             .unwrap();
-
-            // Show cursor again
-            execute!(stdout, cursor::Show).unwrap();
-            log::info!("Exiting, due to: {err}", err = udp_socket.unwrap_err());
-            process::exit(0);
+            log::error!("Exiting, due to: {err}", err = udp_socket.unwrap_err());
+            process::exit(1);
         }
 
         let mut dots = 0;
-
         let _start_time = Instant::now();
 
         while Instant::now().duration_since(start_time) < Duration::from_secs(3) {
@@ -99,30 +90,24 @@ async fn udp_socket_setup() -> Result<UdpSocket, ()> {
     execute!(
         stdout,
         MoveToColumn(action_len),
-        Clear(ClearType::UntilNewLine)
-    )
-    .unwrap();
-
-    execute!(
-        stdout,
+        Clear(ClearType::UntilNewLine),
         MoveToColumn(action_len),
         SetForegroundColor(Color::Green),
-        Print("\tstarted\n"),
-        ResetColor
+        Print("\tstarted"),
+        ResetColor,
+        Print(format!("\t\tat `{}`\n", std::env::var("UDP_ADDR").unwrap())),
+        cursor::Show
     )
     .unwrap();
 
-    // Show cursor again
-    execute!(stdout, cursor::Show).unwrap();
-
-    log::info!(
-        "UDP server set up at `{}`",
-        std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned())
-    );
+    // log::info!(
+    //     "UDP server set up at `{}`",
+    //     std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned())
+    // );
 
     Ok(udp_socket.unwrap())
 }
 
 async fn _udp_socket_setup() -> Result<UdpSocket, std::io::Error> {
-    UdpSocket::bind(std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned())).await
+    UdpSocket::bind(std::env::var("UDP_ADDR").unwrap()).await
 }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use self::call_type::CallType;
 
-pub mod audio_call;
+pub mod media_call;
 pub mod call_type;
 
 /// The structs that implement this one 

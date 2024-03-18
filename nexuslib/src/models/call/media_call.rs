@@ -8,7 +8,7 @@ use super::{call_type::CallType, CallContent};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 /// The representation of an audio call
-pub struct AudioCall {
+pub struct MediaCall {
     pub uuid: Uuid,
     pub message: Vec<u8>,
     pub nonce: Vec<u8>,
@@ -20,8 +20,8 @@ pub struct AudioCall {
     created_at: i64,
 }
 
-impl AudioCall {
-    /// Creates new `AudioCall`
+impl MediaCall {
+    /// Creates new `MediaCall`
     pub fn new(
         sender: Uuid,
         receiver: Uuid,
@@ -47,17 +47,17 @@ impl AudioCall {
     }
 
     /// Returns `timestamp` as `DateTime<Utc>` that
-    /// specifies the time when this `AudioCall` was created
+    /// specifies the time when this `MediaCall` was created
     pub fn get_created_at(&self) -> DateTime<Utc> {
         Utc.timestamp_opt(self.created_at, 0).unwrap()
     }
 
-    /// Serializes an instance of `AudioCall` to `bytes`
+    /// Serializes an instance of `MediaCall` to `bytes`
     pub fn as_bytes(&self) -> Vec<u8> {
         bincode::serialize(&self).unwrap()
     }
 
-    /// Deserializes an instance of `AudioCall` from `bytes`
+    /// Deserializes an instance of `MediaCall` from `bytes`
     pub fn from_bytes(bytes: Vec<u8>) -> Self {
         bincode::deserialize(&bytes).unwrap()
     }
@@ -71,7 +71,7 @@ impl AudioCall {
     }
 }
 
-impl CallContent for AudioCall {
+impl CallContent for MediaCall {
     fn get_type(&self) -> Option<CallType> {
         Some(CallType::Audio)
     }

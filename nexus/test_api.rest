@@ -19,7 +19,7 @@ POST {{$dotenv PROTOCOL}}://{{$dotenv W_HOST}}:{{$dotenv W_PORT}}/api/auth/regis
 Content-Type: application/json
 
 {
-    "username": "test",
+    "username": "root",
     "password": "123",
     "meta": {
         "location": "Callifornia",

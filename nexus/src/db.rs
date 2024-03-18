@@ -38,46 +38,40 @@ pub async fn session_setup() -> Session {
     execute!(stdout, SavePosition).unwrap();
 
     let duration = Duration::from_secs(5);
-    while session.is_err() == true {
-        let mut dots = 0;
+    let mut dots = 0;
 
-        let start_time = Instant::now();
-
-        while Instant::now().duration_since(start_time) < duration {
-            if dots > 3 {
-                execute!(
-                    stdout,
-                    RestorePosition,
-                    Clear(crossterm::terminal::ClearType::UntilNewLine)
-                )
-                .unwrap();
-                dots = 0;
-            }
-            std::thread::sleep(Duration::from_millis(750));
-            execute!(stdout, Print(".")).unwrap();
-            dots += 1;
+    let mut start_time = Instant::now();
+    while session.is_err() {
+        if dots > 3 {
+            execute!(
+                stdout,
+                RestorePosition,
+                Clear(crossterm::terminal::ClearType::FromCursorDown)
+            )
+            .unwrap();
+            dots = 0;
         }
-        session = _session_setup(&uri).await;
+        std::thread::sleep(Duration::from_millis(750));
+        execute!(stdout, Print(".")).unwrap();
+        dots += 1;
+
+        if Instant::now().duration_since(start_time) >= duration {
+            session = _session_setup(&uri).await;
+            start_time = Instant::now();
+        }
     }
 
     execute!(
         stdout,
         MoveToColumn(action_len),
-        Clear(ClearType::UntilNewLine)
-    )
-    .unwrap();
-
-    execute!(
-        stdout,
+        Clear(ClearType::UntilNewLine),
         MoveToColumn(action_len),
         SetForegroundColor(Color::Green),
         Print("\tconnected\n"),
-        ResetColor
+        ResetColor,
+        cursor::Show
     )
     .unwrap();
-
-    // Show cursor again
-    execute!(stdout, cursor::Show).unwrap();
 
     session.unwrap()
 }

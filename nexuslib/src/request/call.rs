@@ -1,7 +1,7 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-use crate::models::calls::CallContent;
+use crate::models::call::CallContent;
 
 use super::Command;
 use super::IndexToken;

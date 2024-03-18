@@ -7,9 +7,11 @@ use api::run_http;
 use dotenv::dotenv;
 use env_logger::Env;
 use scylla::Session;
+use storage::minio_setup;
 use tokio::sync::Mutex;
 
-use crate::{db::session_setup, result::Result};
+use db::session_setup;
+use result::Result;
 use state::connection::ConnectionState;
 use stream::{tcp::run_tcp, udp::run_udp};
 
@@ -20,6 +22,7 @@ mod handler;
 mod ops;
 mod result;
 mod state;
+mod storage;
 mod stream;
 mod tls;
 
@@ -43,7 +46,10 @@ async fn main() -> Result<()> {
 
     // DB session
     let _session = session_setup().await;
-    let session: Arc<Mutex<Session>> = Arc::clone(&Arc::new(Mutex::new(_session)));
+    let session: Arc<Mutex<Session>> = Arc::new(Mutex::new(_session));
+
+    // Storage client
+    let _storage_client = minio_setup().await;
 
     // Active connections state
     let state: Arc<Mutex<ConnectionState>> = Arc::new(Mutex::new(ConnectionState::new()));

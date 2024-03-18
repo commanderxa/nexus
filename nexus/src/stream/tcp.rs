@@ -88,23 +88,17 @@ async fn tcp_listener_setup() -> Result<TcpListener, ()> {
             execute!(
                 stdout,
                 MoveToColumn(action_len),
-                Clear(ClearType::UntilNewLine)
-            )
-            .unwrap();
-
-            execute!(
-                stdout,
+                Clear(ClearType::UntilNewLine),
                 MoveToColumn(action_len),
                 SetForegroundColor(Color::Red),
                 Print("\tfailed\n"),
-                ResetColor
+                ResetColor,
+                cursor::Show
             )
             .unwrap();
 
-            // Show cursor again
-            execute!(stdout, cursor::Show).unwrap();
-            log::info!("Exiting, due to: {err}", err = tcp_listener.unwrap_err());
-            process::exit(0);
+            log::error!("Exiting, due to: {err}", err = tcp_listener.unwrap_err());
+            process::exit(1);
         }
 
         let mut dots = 0;
@@ -131,30 +125,24 @@ async fn tcp_listener_setup() -> Result<TcpListener, ()> {
     execute!(
         stdout,
         MoveToColumn(action_len),
-        Clear(ClearType::UntilNewLine)
-    )
-    .unwrap();
-
-    execute!(
-        stdout,
+        Clear(ClearType::UntilNewLine),
         MoveToColumn(action_len),
         SetForegroundColor(Color::Green),
-        Print("\tstarted\n"),
+        Print("\tstarted"),
         ResetColor,
+        Print(format!("\t\tat `{}`\n", std::env::var("ADDR").unwrap())),
+        cursor::Show,
     )
     .unwrap();
 
-    // Show cursor again
-    execute!(stdout, cursor::Show).unwrap();
-
-    log::info!(
-        "TCP server listener set up at `{}`",
-        std::env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned())
-    );
+    // log::info!(
+    //     "TCP server listener set up at `{}`",
+    //     std::env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned())
+    // );
 
     Ok(tcp_listener.unwrap())
 }
 
 async fn _tcp_listener_setup() -> Result<TcpListener, std::io::Error> {
-    TcpListener::bind(env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned())).await
+    TcpListener::bind(env::var("ADDR").unwrap()).await
 }
