@@ -2,7 +2,7 @@ use std::{convert::Infallible, sync::Arc};
 
 use chrono::{Duration, Utc};
 use nexuslib::{
-    models::user::user::User,
+    models::user::User,
     request::auth::{AuthRequest, AuthRequestMeta, LogoutRequest},
     response::auth::AuthResponse,
 };
@@ -14,8 +14,8 @@ use warp::{hyper::StatusCode, reject, Reply};
 use crate::{
     db::models_wrapper::UserDB,
     errors::{db::DbError, jwt::JWTError},
-    filters::auth::check_token,
-    jwt::generate_jwt,
+    api::filters::auth::check_token,
+    api::jwt::generate_jwt,
 };
 
 use super::users::create;

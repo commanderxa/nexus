@@ -13,7 +13,7 @@ use nexuslib::{
 };
 use uuid::Uuid;
 
-use crate::{errors::db::DbError, filters::auth::check_token, state::connection::ConnectionState};
+use crate::{errors::db::DbError, api::filters::auth::check_token, state::connection::ConnectionState};
 
 /// Sends a message to other user
 ///

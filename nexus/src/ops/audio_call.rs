@@ -11,7 +11,7 @@ use scylla::{
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::{errors::db::DbError, filters::auth::check_token, state::connection::ConnectionState};
+use crate::{errors::db::DbError, api::filters::auth::check_token, state::connection::ConnectionState};
 
 pub async fn connect_audio(
     call: String,

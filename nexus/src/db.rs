@@ -15,19 +15,20 @@ pub mod database;
 mod db_queries;
 pub mod models_wrapper;
 
-pub async fn session_setup(uri: &str) -> Session {
-    let mut session = _session_setup(uri).await;
+pub async fn session_setup() -> Session {
+    let uri = std::env::var("SCYLLA_URI").unwrap_or_else(|_| "127.0.0.1:9042".to_string());
+    let mut session = _session_setup(&uri).await;
 
     let mut stdout = stdout();
     execute!(stdout, cursor::Hide).unwrap();
 
-    let db_str = String::from("DB setup ");
-    let db_str_len = db_str.len() as u16;
-    // Print "DB" and the initial status "connecting"
+    let action = String::from("DB session ");
+    let action_len = action.len() as u16;
+
     execute!(
         stdout,
         SetAttribute(crossterm::style::Attribute::Bold),
-        Print(db_str),
+        Print(action),
         SetAttribute(crossterm::style::Attribute::Reset),
         SetForegroundColor(Color::Yellow),
         Print("\tconnecting")
@@ -35,11 +36,11 @@ pub async fn session_setup(uri: &str) -> Session {
     .unwrap();
 
     execute!(stdout, SavePosition).unwrap();
-    // Simulate connecting to the database
+
+    let duration = Duration::from_secs(5);
     while session.is_err() == true {
         let mut dots = 0;
 
-        let duration = Duration::from_secs(5);
         let start_time = Instant::now();
 
         while Instant::now().duration_since(start_time) < duration {
@@ -56,19 +57,19 @@ pub async fn session_setup(uri: &str) -> Session {
             execute!(stdout, Print(".")).unwrap();
             dots += 1;
         }
-        session = _session_setup(uri).await;
+        session = _session_setup(&uri).await;
     }
 
     execute!(
         stdout,
-        MoveToColumn(db_str_len),
+        MoveToColumn(action_len),
         Clear(ClearType::UntilNewLine)
     )
     .unwrap();
 
     execute!(
         stdout,
-        MoveToColumn(db_str_len),
+        MoveToColumn(action_len),
         SetForegroundColor(Color::Green),
         Print("\tconnected\n"),
         ResetColor

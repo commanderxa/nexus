@@ -50,3 +50,9 @@ impl MessageStatus {
         self.edited = true;
     }
 }
+
+impl Default for MessageStatus {
+    fn default() -> Self {
+        Self::new()
+    }
+}

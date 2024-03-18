@@ -1,18 +1,21 @@
 use std::{str::FromStr, sync::Arc};
 
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
-use nexuslib::{
-    models::user::role::Role,
-    request::auth::{AuthRequest, LogoutRequest},
-};
 use scylla::Session;
 use tokio::sync::Mutex;
 use warp::{http::HeaderValue, hyper::HeaderMap, reject, Filter, Rejection};
 
+use nexuslib::{
+    models::user::role::Role,
+    request::auth::{AuthRequest, LogoutRequest},
+};
+
 use crate::{
+    api::{
+        handlers::{self, auth::validate_session},
+        jwt::{jwt_from_header, Claims},
+    },
     errors::jwt::JWTError,
-    handlers::{self, auth::validate_session},
-    jwt::{jwt_from_header, Claims},
 };
 
 use super::with_session;

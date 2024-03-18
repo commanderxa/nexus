@@ -13,7 +13,7 @@ use tokio::{
 };
 
 use nexuslib::{
-    models::{calls::audio_call::AudioCall, command::Command, user::user::User},
+    models::{calls::audio_call::AudioCall, command::Command, user::User},
     request::{
         auth::{AuthRequest, AuthRequestMeta},
         call::CallRequest,

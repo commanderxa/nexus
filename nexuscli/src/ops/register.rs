@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use nexuslib::models::user::user::User;
+use nexuslib::models::user::User;
 
 /// Register a new user
 ///

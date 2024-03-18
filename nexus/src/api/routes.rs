@@ -4,7 +4,7 @@ use scylla::Session;
 use tokio::sync::Mutex;
 use warp::{Filter, Reply};
 
-use crate::{errors::handle_rejection, filters};
+use crate::{errors::handle_rejection, api::filters};
 
 /// Routes
 ///

@@ -18,7 +18,7 @@ use tokio_util::codec::{Framed, LinesCodec};
 use uuid::Uuid;
 
 use crate::{
-    handlers::users::get_uuid_by_token,
+    api::handlers::users::get_uuid_by_token,
     ops::{audio_call::connect_audio, message::send_message},
     state::{
         connection::{ConnectionState, SessionSocket},

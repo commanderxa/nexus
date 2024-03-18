@@ -31,12 +31,12 @@ impl AudioCall {
     ) -> Self {
         Self {
             uuid: Uuid::new_v4(),
-            message: message,
-            nonce: nonce,
+            message,
+            nonce,
             sides: RequestSides::new(sender, receiver),
             peers: RequestSidesOpt::new(),
             secret: false,
-            accepted: accepted,
+            accepted,
             created_at: Utc::now().timestamp(),
         }
     }

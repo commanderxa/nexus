@@ -55,3 +55,9 @@ impl RequestSidesOpt {
         self.receiver
     }
 }
+
+impl Default for RequestSidesOpt {
+    fn default() -> Self {
+        Self::new()
+    }
+}

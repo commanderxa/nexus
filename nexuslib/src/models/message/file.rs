@@ -16,7 +16,7 @@ impl FileMessage {
         Self {
             text: text.to_owned(),
             filename: filename.to_owned(),
-            file: file,
+            file,
         }
     }
 }

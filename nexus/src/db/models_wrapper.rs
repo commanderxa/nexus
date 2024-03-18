@@ -1,4 +1,4 @@
-use nexuslib::models::user::{role::Role, user::User};
+use nexuslib::models::user::{role::Role, User};
 use scylla::FromRow;
 use uuid::Uuid;
 

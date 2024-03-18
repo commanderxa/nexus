@@ -5,7 +5,7 @@ pub mod request;
 pub mod response;
 pub mod utils;
 
-pub use models::message::message::Message;
+pub use models::message::Message;
 
 // #[cfg(test)]
 // mod tests {

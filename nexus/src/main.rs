@@ -1,31 +1,25 @@
 use std::{
-    env, process,
+    process,
     sync::{mpsc::channel, Arc},
 };
 
-use state::connection::ConnectionState;
-use tokio::{
-    net::{TcpListener, UdpSocket},
-    sync::Mutex,
-};
-
+use api::run_http;
 use env_logger::Env;
 use scylla::Session;
+use tokio::sync::Mutex;
 
-use crate::{db::session_setup, handler::handle_udp, result::Result, routes::get_routes};
+use crate::{db::session_setup, result::Result};
+use state::connection::ConnectionState;
+use stream::{tcp::run_tcp, udp::run_udp};
 
-use handler::handle_stream;
-
+mod api;
 mod db;
 mod errors;
-mod filters;
 mod handler;
-mod handlers;
-mod jwt;
 mod ops;
 mod result;
-mod routes;
 mod state;
+mod stream;
 mod tls;
 
 #[tokio::main]
@@ -45,70 +39,19 @@ async fn main() -> Result<()> {
         process::exit(0);
     });
 
-    // DB
-    let uri = std::env::var("SCYLLA_URI").unwrap_or_else(|_| "127.0.0.1:9042".to_string());
-    let session = session_setup(&uri).await;
-    let session_copy: Arc<Mutex<Session>> = Arc::clone(&Arc::new(Mutex::new(session)));
-    let session_web = session_copy.clone();
-
+    // DB session
+    let _session = session_setup().await;
+    let session: Arc<Mutex<Session>> = Arc::clone(&Arc::new(Mutex::new(_session)));
+    
     // Active connections state
     let state: Arc<Mutex<ConnectionState>> = Arc::new(Mutex::new(ConnectionState::new()));
 
     // HTTP server
-    let routes = get_routes(session_web);
-    tokio::spawn(async move {
-        warp::serve(routes)
-            .tls()
-            .cert_path("./certs/cert.pem")
-            .key_path("./certs/key.pem")
-            .run(([127, 0, 0, 1], 8082))
-            .await;
-    });
-
-    // TCP Server
-    log::info!(
-        "TCP server listener set up at `{}`",
-        std::env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned())
-    );
-    let listener =
-        TcpListener::bind(env::var("ADDR").unwrap_or_else(|_| "127.0.0.1:8081".to_owned()))
-            .await
-            .expect("Error binding port");
-
+    run_http(session.clone()).await;
     // UDP Server
-    log::info!(
-        "UDP server set up at `{}`",
-        std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned())
-    );
-    let sock =
-        UdpSocket::bind(std::env::var("C_ADDR").unwrap_or_else(|_| "127.0.0.1:8083".to_owned()))
-            .await
-            .unwrap();
-
-    let udp_state = Arc::clone(&state);
-    tokio::spawn(async move {
-        match handle_udp(sock, udp_state).await {
-            Ok(_) => (),
-            Err(_) => {
-                log::error!("Error handling request");
-            }
-        }
-    });
-
-    // TCP Listener
-    while let Ok((stream, socket)) = listener.accept().await {
-        let session: Arc<Mutex<Session>> = session_copy.clone();
-        let state = Arc::clone(&state);
-
-        tokio::spawn(async move {
-            match handle_stream(stream, socket, session, state).await {
-                Ok(_) => (),
-                Err(_) => {
-                    log::error!("Error handling request");
-                }
-            }
-        });
-    }
+    run_udp(Arc::clone(&state)).await;
+    // TCP Server
+    run_tcp(session, state).await;
 
     Ok(())
 

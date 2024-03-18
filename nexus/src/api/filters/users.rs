@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use nexuslib::models::user::{role::Role, user::User};
+use nexuslib::models::user::{role::Role, User};
 use scylla::Session;
 use tokio::sync::Mutex;
 use warp::Filter;
 
-use crate::handlers;
+use crate::api::handlers;
 
 use super::{with_auth, with_session};
 

@@ -21,8 +21,8 @@ where
 impl<T: CallContent> CallRequest<T> {
     pub fn new(call: T, index: IndexToken) -> Self {
         Self {
-            call: call,
-            index: index,
+            call,
+            index,
             created_at: Utc::now().timestamp(),
         }
     }

@@ -37,8 +37,7 @@ impl FromStr for TextMessage {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let text_message: Self = TextMessage { text: s.to_owned() };
-        match text_message {
-            text => Ok(text),
-        }
+        let text = text_message;
+        Ok(text)
     }
 }

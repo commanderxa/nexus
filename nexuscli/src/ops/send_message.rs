@@ -4,7 +4,7 @@ use aes_gcm::{aead::Aead, Aes256Gcm, KeyInit, Nonce};
 use ansi_term::Color;
 use futures::StreamExt;
 use nexuslib::{
-    models::{message::text::TextMessage, user::user::User},
+    models::{message::text::TextMessage, user::User},
     request::{message::MessageRequest, Request, RequestBody},
     utils::{string_to_vec, vec_to_string},
     Message,

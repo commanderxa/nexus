@@ -9,16 +9,14 @@
 /// - `Vec<u8>`: `[1, 2, 3, 4, 5]`
 /// - `String`: `"1,2,3,4,5"`
 pub fn vec_to_string(arr: Vec<u8>) -> String {
-    let string = arr
-        .clone()
+    arr.clone()
         .into_iter()
         .map(|b| {
             let mut bn = b.to_string();
-            bn.push_str(",");
+            bn.push(',');
             bn
         })
-        .collect::<String>();
-    string
+        .collect::<String>()
 }
 
 /// ### Description
@@ -30,7 +28,7 @@ pub fn vec_to_string(arr: Vec<u8>) -> String {
 /// - `String`: `"1,2,3,4,5"`
 /// - `Vec<u8>`: `[1, 2, 3, 4, 5]`
 pub fn string_to_vec(string: String) -> Vec<u8> {
-    let arr = string.rsplit(",").collect::<Vec<&str>>();
+    let arr = string.rsplit(',').collect::<Vec<&str>>();
     let arr = arr
         .iter()
         .rev()

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::models::message::MessageContent;
-use crate::models::message::message::Message;
+use crate::Message;
 
 use super::Command;
 use super::RequestBody;
