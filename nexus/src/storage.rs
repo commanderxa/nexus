@@ -15,7 +15,7 @@ use minio::s3::{
 };
 use nexuslib::models::message::media::MediaType;
 
-pub fn get_client() -> Result<Client, Error> {
+pub fn get_client() -> Result<Client, Box<Error>> {
     let host = std::env::var("MINIO_HOST").unwrap();
     let port = std::env::var("MINIO_PORT").unwrap();
     let endpoint = format!("http://{host}:{port}").parse::<BaseUrl>().unwrap();
@@ -26,7 +26,11 @@ pub fn get_client() -> Result<Client, Error> {
         None,
     );
 
-    Client::new(endpoint, Some(Box::new(provider)), None, None)
+    let client = Client::new(endpoint, Some(Box::new(provider)), None, None);
+    if let Err(err) = client {
+        return Err(Box::new(err));
+    }
+    Ok(client.unwrap())
 }
 
 /// Performs connection to MinIO

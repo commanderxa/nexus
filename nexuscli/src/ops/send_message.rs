@@ -48,7 +48,7 @@ pub async fn send_message(
                     break;
                 }
                 log::debug!("> {}", buf);
-                let buf = buf.replace("\n", "");
+                let buf = buf.replace('\n', "");
                 let message: Message<TextMessage> = serde_json::from_str(&buf).unwrap();
 
                 let pub_key: [u8; 32] = receiver.public_key().as_slice().try_into().unwrap();
@@ -57,12 +57,12 @@ pub async fn send_message(
                 let message_nonce = string_to_vec(message.get_nonce());
                 let nonce = Nonce::from_slice(message_nonce.as_slice());
 
-                let cipher = Aes256Gcm::new_from_slice(&shared_key.as_bytes().as_slice()).unwrap();
+                let cipher = Aes256Gcm::new_from_slice(shared_key.as_bytes().as_slice()).unwrap();
 
-                let decrypted = cipher.decrypt(&nonce, string_to_vec(message.content.text.clone()).as_ref()).unwrap();
+                let decrypted = cipher.decrypt(nonce, string_to_vec(message.content.text.clone()).as_ref()).unwrap();
                 let msg = String::from_utf8(decrypted).unwrap();
 
-                let display_name = if &message.sides.get_sender() == &user.uuid {
+                let display_name = if message.sides.get_sender() == user.uuid {
                     Color::Green.bold().paint("Me".to_owned())
                 } else {
                     Color::Red.bold().paint(receiver.username.clone())
@@ -79,9 +79,9 @@ pub async fn send_message(
                 let mut raw_nonce = [0u8; 12];
                 rand_core::OsRng.fill_bytes(&mut raw_nonce);
                 let nonce = Nonce::from_slice(&raw_nonce);
-                let cipher = Aes256Gcm::new_from_slice(&shared_key.as_bytes().as_slice()).unwrap();
+                let cipher = Aes256Gcm::new_from_slice(shared_key.as_bytes().as_slice()).unwrap();
 
-                let encrypted = cipher.encrypt(&nonce, message.as_ref()).unwrap();
+                let encrypted = cipher.encrypt(nonce, message.as_ref()).unwrap();
                 let encrypted = vec_to_string(encrypted);
 
                 let text_message = TextMessage::new(&encrypted);

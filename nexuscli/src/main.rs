@@ -68,11 +68,11 @@ async fn main() {
     print!("Username: ");
     std::io::stdout().flush().unwrap();
     std::io::stdin().read_line(&mut username).unwrap();
-    let username = username.replace("\n", "");
+    let username = username.replace('\n', "");
     let password = rpassword::prompt_password("Password: ").unwrap();
     let auth_req = AuthRequest {
-        username: username,
-        password: password,
+        username,
+        password,
         meta: AuthRequestMeta {
             location: "California".to_owned(),
             device_name: "Asus".to_owned(),
@@ -90,7 +90,7 @@ async fn main() {
         .unwrap();
 
     let resp = client
-        .post(format!("https://127.0.0.1:8082/api/auth/login"))
+        .post("https://127.0.0.1:8082/api/auth/login".to_owned())
         .body(auth_req_json)
         .send()
         .await
@@ -184,7 +184,7 @@ async fn main() {
                     }
                     result = lines.next() => {
                         let _result = result.unwrap().unwrap().clone();
-                        if _result.contains("y") {
+                        if _result.contains('y') {
                             let mut call = call_stack.last().unwrap().clone();
                             call.accepted = true;
                             let call_req = CallRequest::new(call, IndexToken::Accept);
@@ -200,7 +200,7 @@ async fn main() {
                             // Sends the Request
                             writer.write_all(&req_json).await.unwrap();
                             writer.flush().await.unwrap();
-                        } else if _result.contains("c") {
+                        } else if _result.contains('c') {
                             let mut call = call_stack.pop().unwrap();
                             call.accepted = true;
                             let call_req = CallRequest::new(call, IndexToken::End);

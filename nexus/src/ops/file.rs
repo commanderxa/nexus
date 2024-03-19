@@ -28,7 +28,7 @@ pub async fn stream_file(
     let mut bytes = Framed::new(stream, BytesCodec::new());
 
     let file = file_request.body.file;
-    let filename_split = file.name.split(".").collect::<Vec<&str>>();
+    let filename_split = file.name.split('.').collect::<Vec<&str>>();
     let ext = filename_split[filename_split.len() - 1];
     let object_name = file.uuid.to_string() + "." + ext;
     let filename = Path::new(&std::env::var("STORAGE_MEDIA").unwrap()).join(&object_name);

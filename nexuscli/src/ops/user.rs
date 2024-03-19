@@ -11,15 +11,12 @@ use uuid::Uuid;
 /// Returns Result
 #[allow(unused)]
 pub async fn get_user(user_uuid: Uuid) -> Result<Option<User>> {
-    let body = reqwest::get(format!(
-        "https://127.0.0.1:8082/api/users/{0}",
-        user_uuid.to_string()
-    ))
-    .await
-    .unwrap()
-    .text()
-    .await
-    .unwrap();
+    let body = reqwest::get(format!("https://127.0.0.1:8082/api/users/{0}", user_uuid))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
 
     match serde_json::from_str::<User>(&body) {
         Ok(user) => Ok(Some(user)),
@@ -29,7 +26,7 @@ pub async fn get_user(user_uuid: Uuid) -> Result<Option<User>> {
 
 pub async fn get_users(client: Client, token: String) -> Result<Vec<User>> {
     let body = client
-        .get(format!("https://127.0.0.1:8082/api/users"))
+        .get("https://127.0.0.1:8082/api/users".to_owned())
         .bearer_auth(&token)
         .send()
         .await

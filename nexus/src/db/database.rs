@@ -37,10 +37,7 @@ async fn create_tables(session: &Session) -> Result<()> {
     ];
 
     for table in tables {
-        let res = create_entity(session, table).await;
-        if res.is_err() {
-            return res;
-        }
+        create_entity(session, table).await?;
     }
 
     Ok(())
