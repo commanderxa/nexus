@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::request::sides::{RequestSides, RequestSidesOpt};
 
-use super::{call_type::CallType, CallContent};
+use super::CallContent;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 /// The representation of an audio call
@@ -41,11 +41,6 @@ impl MediaCall {
         }
     }
 
-    /// Returns the Type of the Call
-    pub fn get_type(&self) -> CallType {
-        CallType::Audio
-    }
-
     /// Returns `timestamp` as `DateTime<Utc>` that
     /// specifies the time when this `MediaCall` was created
     pub fn get_created_at(&self) -> DateTime<Utc> {
@@ -71,8 +66,4 @@ impl MediaCall {
     }
 }
 
-impl CallContent for MediaCall {
-    fn get_type(&self) -> Option<CallType> {
-        Some(CallType::Audio)
-    }
-}
+impl CallContent for MediaCall {}

@@ -7,20 +7,27 @@ use ops::start_session::start_session;
 use reqwest::Client;
 use sysinfo::{System, SystemExt};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
+    fs::File,
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader, BufWriter},
     net::{TcpStream, UdpSocket},
 };
 
 use nexuslib::{
-    models::{call::media_call::MediaCall, command::Command, user::User},
+    models::{
+        call::media_call::MediaCall, command::Command, file::media_file::MediaFile,
+        message::media::MediaType, user::User,
+    },
     request::{
         auth::{AuthRequest, AuthRequestMeta},
         call::CallRequest,
-        EmptyRequestBody, IndexToken, Request, RequestBody,
+        file::FileRequest,
+        index_token::IndexToken,
+        EmptyRequestBody, Request, RequestBody,
     },
     response::auth::AuthResponse,
 };
 use tokio_util::codec::{FramedRead, LinesCodec};
+use uuid::Uuid;
 use x25519_dalek::StaticSecret;
 
 use crate::ops::{send_message::send_message, user::get_users};
@@ -51,7 +58,7 @@ async fn main() {
     // const MAX_DATAGRAM_SIZE: usize = 65_000;
     socket.connect(&remote_addr).await.unwrap();
 
-    let command: Command = Command::Message;
+    let command: Command = Command::File;
 
     let mut sys = System::new();
     sys.refresh_system();
@@ -227,7 +234,47 @@ async fn main() {
                 }
             }
         }
-        Command::File => todo!(),
+        Command::File => {
+            let (_, writer) = stream.split();
+            // let reader = BufReader::new(reader);
+            let mut writer = BufWriter::new(writer);
+            // let framed = FramedRead::new(reader, BytesCodec::new());
+
+            let mut file = File::open("/home/spectre/Pictures/picture.png")
+                .await
+                .unwrap();
+            let metadata = file.metadata().await.unwrap();
+            let file_size = metadata.len();
+
+            let f = MediaFile::new(
+                Uuid::new_v4(),
+                file_size as usize,
+                (file_size as f64 / 1024.0).ceil() as usize,
+                "picture.png".to_owned(),
+                MediaType::Image,
+                false,
+                user.uuid,
+            );
+            let req_body = FileRequest::new(f);
+            let req = Request::new(req_body.op(), req_body, resp.token);
+            let mut req_json = serde_json::to_vec(&req).unwrap();
+            // Appending `\n` in the end of the request
+            let mut new_line = String::from("\n").as_bytes().to_vec();
+            req_json.append(&mut new_line);
+
+            // Sends the Request
+            writer.write_all(&req_json).await.unwrap();
+            writer.flush().await.unwrap();
+
+            let mut buffer = vec![0; 1024];
+            let mut bytes_sent: u64 = 0;
+
+            while bytes_sent < file_size {
+                let bytes_read = file.read(&mut buffer).await.unwrap();
+                writer.write_all(&buffer[..bytes_read]).await.unwrap();
+                bytes_sent += bytes_read as u64;
+            }
+        }
     }
 }
 

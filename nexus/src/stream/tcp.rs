@@ -15,7 +15,9 @@ use crossterm::{
 use scylla::Session;
 use tokio::{net::TcpListener, sync::Mutex};
 
-use crate::{handler::handle_stream, state::connection::ConnectionState};
+use crate::state::connection::ConnectionState;
+
+use super::tcp_handler::handle_stream;
 
 pub async fn run_tcp(session: Arc<Mutex<Session>>, state: Arc<Mutex<ConnectionState>>) {
     let listener = tcp_listener_setup().await.unwrap();

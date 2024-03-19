@@ -7,15 +7,13 @@ use scylla::{
 use tokio::sync::Mutex;
 
 use nexuslib::{
-    models::message::{r#type::MessageType, text::TextMessage, EmptyMessageBody, MessageContent},
+    models::message::{text::TextMessage, MessageContent},
     request::{message::MessageRequest, Request},
     Message,
 };
 use uuid::Uuid;
 
-use crate::{
-    api::filters::auth::check_token, errors::db::DbError, state::connection::ConnectionState,
-};
+use crate::{errors::db::DbError, state::connection::ConnectionState};
 
 /// Sends a message to other user
 ///
@@ -28,25 +26,7 @@ pub async fn send_message(
     state: Arc<Mutex<ConnectionState>>,
 ) -> Result<(), Box<dyn Error>> {
     let (message, peer_uuid) = message;
-    let phantom_message: Request<MessageRequest<EmptyMessageBody>> =
-        serde_json::from_str(&message).unwrap();
-
-    // verifying whether the token is valid
-    let token_verify = check_token(session.clone(), &phantom_message.token).await;
-    if token_verify.is_err() {
-        return Ok(());
-    }
-
-    /* THIS SECTION TO BE MODIFIED LATER */
-    let message = match phantom_message.body.message.get_message_type() {
-        MessageType::Text => {
-            let text_message: Request<MessageRequest<TextMessage>> =
-                serde_json::from_str(&message).unwrap();
-            text_message
-        }
-        MessageType::File => todo!(),
-    };
-    /* --- */
+    let message: Request<MessageRequest<TextMessage>> = serde_json::from_str(&message).unwrap();
 
     // when message arrives on the server, mark it as `sent`
     let mut message = message.body.message;
@@ -106,8 +86,8 @@ pub async fn add_message<T: MessageContent + Debug>(
         .prepare(
             "
             INSERT INTO nexus.messages 
-            (uuid, text, nonce, media, sender, receiver, sent, read, edited, message_type, created_at) 
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            (uuid, text, nonce, media, sender, receiver, sent, read, edited, created_at) 
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         ",
         )
         .await
@@ -128,7 +108,6 @@ pub async fn add_message<T: MessageContent + Debug>(
                 message.status.get_sent(),
                 message.status.get_read(),
                 message.status.get_edited(),
-                message.get_message_type().get_index() as i8,
                 Timestamp(Duration::try_seconds(message.get_created_at().timestamp()).unwrap()),
             ),
         )

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
-use super::{r#type::MessageType, MessageContent};
+use super::MessageContent;
 
 #[derive(Debug, Serialize, Deserialize)]
 /// Text content of a `Message`
@@ -20,10 +20,6 @@ impl TextMessage {
 }
 
 impl MessageContent for TextMessage {
-    fn get_type(&self) -> Option<MessageType> {
-        Some(MessageType::Text)
-    }
-
     fn get_text(&self) -> Option<String> {
         Some(self.text.to_owned())
     }

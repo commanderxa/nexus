@@ -13,7 +13,9 @@ use crossterm::{
 };
 use tokio::{net::UdpSocket, sync::Mutex};
 
-use crate::{handler::handle_udp, state::connection::ConnectionState};
+use crate::state::connection::ConnectionState;
+
+use super::udp_handler::handle_udp;
 
 pub async fn run_udp(state: Arc<Mutex<ConnectionState>>) {
     let socket = udp_socket_setup().await.unwrap();

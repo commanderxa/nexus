@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use strum_macros::Display;
+use strum::IntoEnumIterator;
+use strum_macros::{Display, EnumIter};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -33,7 +34,7 @@ impl MediaAttachment {
     }
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Copy, Display)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Copy, Display, EnumIter)]
 #[repr(u8)]
 pub enum MediaType {
     Audio,
@@ -46,5 +47,14 @@ impl MediaType {
     /// Returns u8 index of the `Role` entry
     pub fn get_index(&self) -> u8 {
         serde_json::to_string(self).unwrap().parse::<u8>().unwrap()
+    }
+
+    /// Returns a vector of enum variants of `MediaType`
+    pub fn str_variants_vec() -> Vec<String> {
+        let mut arr = vec![];
+        for value in MediaType::iter() {
+            arr.push(value.to_string().to_lowercase());
+        }
+        arr
     }
 }

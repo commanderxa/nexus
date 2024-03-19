@@ -10,13 +10,12 @@ use minio::s3::{
     args::{BucketExistsArgs, MakeBucketArgs},
     client::Client,
     creds::StaticProvider,
+    error::Error,
     http::BaseUrl,
 };
+use nexuslib::models::message::media::MediaType;
 
-/// Performs connection to MinIO
-///
-/// Calls initializations inside to create mandatory buckets (folders)
-pub async fn minio_setup() -> Client {
+pub fn get_client() -> Result<Client, Error> {
     let host = std::env::var("MINIO_HOST").unwrap();
     let port = std::env::var("MINIO_PORT").unwrap();
     let endpoint = format!("http://{host}:{port}").parse::<BaseUrl>().unwrap();
@@ -26,6 +25,14 @@ pub async fn minio_setup() -> Client {
         &std::env::var("MINIO_ROOT_PASSWORD").unwrap(),
         None,
     );
+
+    Client::new(endpoint, Some(Box::new(provider)), None, None)
+}
+
+/// Performs connection to MinIO
+///
+/// Calls initializations inside to create mandatory buckets (folders)
+pub async fn minio_setup() {
     let mut stdout = stdout();
     execute!(stdout, cursor::Hide).unwrap();
 
@@ -38,13 +45,12 @@ pub async fn minio_setup() -> Client {
         Print(action),
         SetAttribute(crossterm::style::Attribute::Reset),
         SetForegroundColor(Color::Yellow),
-        Print("\tconnecting")
+        Print("\tconnecting"),
+        SavePosition
     )
     .unwrap();
 
-    execute!(stdout, SavePosition).unwrap();
-
-    let _client = Client::new(endpoint, Some(Box::new(provider)), None, None);
+    let _client = get_client();
     if let Ok(client) = _client {
         // create buckets
         minio_init(&client).await;
@@ -59,8 +65,6 @@ pub async fn minio_setup() -> Client {
             cursor::Show
         )
         .unwrap();
-
-        client
     } else {
         execute!(
             stdout,
@@ -80,16 +84,17 @@ pub async fn minio_setup() -> Client {
 
 /// Necessary initialization for MinIO
 pub async fn minio_init(client: &Client) {
-    let buckets = ["images", "videos", "files"];
+    let buckets = MediaType::str_variants_vec();
 
-    for bucket in buckets {
+    for mut bucket in buckets {
+        bucket.push('s');
         if !client
-            .bucket_exists(&BucketExistsArgs::new(bucket).unwrap())
+            .bucket_exists(&BucketExistsArgs::new(&bucket).unwrap())
             .await
             .unwrap()
         {
             let res = client
-                .make_bucket(&MakeBucketArgs::new(bucket).unwrap())
+                .make_bucket(&MakeBucketArgs::new(&bucket).unwrap())
                 .await;
             if res.is_err() {
                 log::error!(

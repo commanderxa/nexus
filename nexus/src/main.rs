@@ -18,7 +18,6 @@ use stream::{tcp::run_tcp, udp::run_udp};
 mod api;
 mod db;
 mod errors;
-mod handler;
 mod ops;
 mod result;
 mod state;
@@ -49,7 +48,7 @@ async fn main() -> Result<()> {
     let session: Arc<Mutex<Session>> = Arc::new(Mutex::new(_session));
 
     // Storage client
-    let _storage_client = minio_setup().await;
+    minio_setup().await;
 
     // Active connections state
     let state: Arc<Mutex<ConnectionState>> = Arc::new(Mutex::new(ConnectionState::new()));

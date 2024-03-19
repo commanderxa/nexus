@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::call::CallContent;
 
+use super::index_token::IndexToken;
 use super::Command;
-use super::IndexToken;
 use super::RequestBody;
 
 #[derive(Debug, Serialize, Deserialize)]

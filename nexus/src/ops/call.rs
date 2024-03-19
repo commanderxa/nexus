@@ -3,7 +3,7 @@ use std::{error::Error, sync::Arc};
 use chrono::Duration;
 use nexuslib::{
     models::call::media_call::MediaCall,
-    request::{call::CallRequest, IndexToken, Request},
+    request::{call::CallRequest, index_token::IndexToken, Request},
 };
 use scylla::{
     frame::value::Timestamp, prepared_statement::PreparedStatement, QueryResult, Session,
@@ -11,7 +11,7 @@ use scylla::{
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use crate::{errors::db::DbError, api::filters::auth::check_token, state::connection::ConnectionState};
+use crate::{errors::db::DbError, state::connection::ConnectionState};
 
 pub async fn connect_call(
     call: String,
@@ -20,12 +20,6 @@ pub async fn connect_call(
     peer_uuid: Uuid,
 ) -> Result<(), Box<dyn Error>> {
     let mut call_request: Request<CallRequest<MediaCall>> = serde_json::from_str(&call).unwrap();
-
-    // verifying whether the token is valid
-    let token_verify = check_token(session.clone(), &call_request.token).await;
-    if token_verify.is_err() {
-        return Ok(());
-    }
 
     println!("{:#?}", call_request);
 
@@ -158,8 +152,7 @@ pub async fn connect_call(
             }
         }
         // includes IndexToken::Accepted
-        // since server will never receive this token
-        // as server sends it itself
+        // server sends it itself hence it will never receive this token
         _ => (),
     }
 
@@ -175,7 +168,7 @@ pub async fn add_call(
         .lock()
         .await
         .prepare(
-            "INSERT INTO nexus.calls (uuid, sender, receiver, call_type, duration, accepted, secret, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO nexus.calls (uuid, sender, receiver, duration, accepted, secret, created_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
         )
         .await
         .unwrap();
@@ -189,7 +182,6 @@ pub async fn add_call(
                 call.uuid,
                 call.sides.get_sender(),
                 call.sides.get_receiver(),
-                call.get_type().get_index() as i8,
                 0i64,
                 false,
                 call.secret,

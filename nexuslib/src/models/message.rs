@@ -4,12 +4,11 @@ use uuid::Uuid;
 
 use crate::{request::sides::RequestSides, utils::vec_to_string};
 
-use self::{media::Media, r#type::MessageType, status::MessageStatus};
+use self::{media::Media, status::MessageStatus};
 
 pub mod media;
 pub mod status;
 pub mod text;
-pub mod r#type;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 /// The message
@@ -26,7 +25,6 @@ where
     pub secret: bool,
     pub media: Option<Media>,
 
-    message_type: MessageType,
     created_at: i64,
     editead_at: Option<i64>,
 }
@@ -34,7 +32,6 @@ where
 impl<T: MessageContent> Message<T> {
     /// Creates a new `Message`
     pub fn new(content: T, nonce: Vec<u8>, sender: Uuid, receiver: Uuid) -> Self {
-        let message_type: MessageType = content.get_type().unwrap();
         Self {
             uuid: Uuid::new_v4(),
             content,
@@ -44,7 +41,6 @@ impl<T: MessageContent> Message<T> {
             ttl: None,
             secret: false,
             media: None,
-            message_type,
             created_at: Utc::now().timestamp(),
             editead_at: None,
         }
@@ -67,18 +63,11 @@ impl<T: MessageContent> Message<T> {
         self.editead_at
             .map(|value| Utc.timestamp_opt(value, 0).unwrap())
     }
-
-    /// Returns the type of the `Message`
-    pub fn get_message_type(&self) -> MessageType {
-        self.message_type
-    }
 }
 
 /// The structs that implement this one
 /// can be inserted into the `MessageRequest`
 pub trait MessageContent {
-    fn get_type(&self) -> Option<MessageType>;
-
     fn get_text(&self) -> Option<String>;
 }
 
@@ -88,10 +77,6 @@ pub trait MessageContent {
 pub struct EmptyMessageBody {}
 
 impl MessageContent for EmptyMessageBody {
-    fn get_type(&self) -> Option<MessageType> {
-        None
-    }
-
     fn get_text(&self) -> Option<String> {
         None
     }
